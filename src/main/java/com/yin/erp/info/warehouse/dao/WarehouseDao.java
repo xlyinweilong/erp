@@ -2,8 +2,8 @@ package com.yin.erp.info.warehouse.dao;
 
 
 import com.yin.erp.info.warehouse.entity.po.WarehousePo;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.repository.PagingAndSortingRepository;
 
 import javax.annotation.Resource;
 
@@ -13,6 +13,6 @@ import javax.annotation.Resource;
  * @author yin
  */
 @Resource
-public interface WarehouseDao extends PagingAndSortingRepository<WarehousePo, String>, JpaSpecificationExecutor {
+public interface WarehouseDao extends JpaRepository<WarehousePo, String>, JpaSpecificationExecutor {
     WarehousePo findByCode(String code);
 }

@@ -2,8 +2,8 @@ package com.yin.erp.info.supplier.dao;
 
 
 import com.yin.erp.info.supplier.entity.po.SupplierPo;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.repository.PagingAndSortingRepository;
 
 import javax.annotation.Resource;
 
@@ -13,6 +13,6 @@ import javax.annotation.Resource;
  * @author yin
  */
 @Resource
-public interface SupplierDao extends PagingAndSortingRepository<SupplierPo, String>, JpaSpecificationExecutor {
+public interface SupplierDao extends JpaRepository<SupplierPo, String>, JpaSpecificationExecutor {
     SupplierPo findByCode(String code);
 }

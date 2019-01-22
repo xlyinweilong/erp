@@ -46,12 +46,6 @@ public class StockChannelPo extends BasePo {
     @Column(name = "goods_color_name")
     private String goodsColorName;
 
-    @Column(name = "goods_in_size_id")
-    private String goodsInSizeId;
-
-    @Column(name = "goods_in_size_name")
-    private String goodsInSizeName;
-
     @Column(name = "goods_size_id")
     private String goodsSizeId;
 

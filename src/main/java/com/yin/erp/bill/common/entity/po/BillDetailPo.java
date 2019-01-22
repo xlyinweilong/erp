@@ -75,20 +75,6 @@ public class BillDetailPo extends BaseDataPo {
     private String goodsColorName;
 
     /**
-     * 货品内长ID
-     */
-    @Column(name = "goods_in_size_id")
-    private String goodsInSizeId;
-
-
-    /**
-     * 货品内长名称
-     */
-    @Column(name = "goods_in_size_name")
-    private String goodsInSizeName;
-
-
-    /**
      * 货品尺码ID
      */
     @Column(name = "goods_size_id")

@@ -11,7 +11,6 @@ import com.yin.erp.info.dict.entity.vo.in.DictDeleteVo;
 import com.yin.erp.info.dict.enums.DictGoodsType;
 import com.yin.erp.info.dict.enums.DictType;
 import com.yin.erp.info.goods.dao.GoodsColorDao;
-import com.yin.erp.info.goods.dao.GoodsInSizeDao;
 import com.yin.erp.info.goods.entity.vo.GoodsVo;
 import com.yin.erp.info.goods.service.GoodsService;
 import org.apache.commons.lang3.StringUtils;
@@ -47,8 +46,6 @@ public class DictService {
     private GoodsService goodsService;
     @Autowired
     private GoodsColorDao goodsColorDao;
-    @Autowired
-    private GoodsInSizeDao goodsInSizeDao;
 
 
     /**
@@ -209,10 +206,6 @@ public class DictService {
         if (DictType.GOODS.name().equals(type1)) {
             if (DictGoodsType.COLOR.name().equals(type2)) {
                 if (goodsColorDao.countByColorId(id) > 0L) {
-                    return true;
-                }
-            } else if (DictGoodsType.IN_SIZE.name().equals(type2)) {
-                if (goodsInSizeDao.countByInSizeId(id) > 0L) {
                     return true;
                 }
             } else {

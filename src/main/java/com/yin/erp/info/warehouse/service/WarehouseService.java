@@ -2,6 +2,11 @@ package com.yin.erp.info.warehouse.service;
 
 import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.base.exceptions.MessageException;
+import com.yin.erp.base.feign.user.bo.UserSessionBo;
+import com.yin.erp.config.sysconfig.dao.ConfigWarehouseDao;
+import com.yin.erp.config.sysconfig.entity.po.ConfigPo;
+import com.yin.erp.config.sysconfig.entity.po.ConfigWarehousePo;
+import com.yin.erp.info.dict.feign.DictFeign;
 import com.yin.erp.info.warehouse.dao.WarehouseDao;
 import com.yin.erp.info.warehouse.entity.po.WarehousePo;
 import com.yin.erp.info.warehouse.entity.vo.WarehouseVo;
@@ -29,6 +34,10 @@ public class WarehouseService {
 
     @Autowired
     private WarehouseDao warehouseDao;
+    @Autowired
+    private DictFeign dictFeign;
+    @Autowired
+    private ConfigWarehouseDao configWarehouseDao;
 
     /**
      * 保存
@@ -44,7 +53,13 @@ public class WarehouseService {
         }
         po.setCode(vo.getCode());
         po.setName(vo.getName());
+        po.setGroupId(vo.getGroupId());
+        po.setGroupName(dictFeign.getNameById(vo.getGroupId()));
         warehouseDao.save(po);
+        configWarehouseDao.deleteAllByWarehouseId(po.getId());
+        for (ConfigPo configPo : vo.getWarehouseConfigList()) {
+            configWarehouseDao.save(new ConfigWarehousePo(configPo.getId(), po.getId(), configPo.getDefaultValue()));
+        }
     }
 
     /**
@@ -54,12 +69,15 @@ public class WarehouseService {
      * @return
      */
     public WarehouseVo findById(String id) {
-        WarehousePo dictPo = warehouseDao.findById(id).get();
-        WarehouseVo dictVo = new WarehouseVo();
-        dictVo.setId(dictPo.getId());
-        dictVo.setCode(dictPo.getCode());
-        dictVo.setName(dictPo.getName());
-        return dictVo;
+        WarehousePo po = warehouseDao.findById(id).get();
+        WarehouseVo vo = new WarehouseVo();
+        vo.setId(po.getId());
+        vo.setCode(po.getCode());
+        vo.setName(po.getName());
+        vo.setGroupId(po.getGroupId());
+        vo.setGroupName(po.getGroupName());
+        vo.setWarehouseConfigWarehouseList(configWarehouseDao.findByWarehouseId(id));
+        return vo;
     }
 
     /**
@@ -68,7 +86,7 @@ public class WarehouseService {
      * @param vo
      * @return
      */
-    public Page<WarehousePo> findDictPage(WarehouseVo vo) {
+    public Page<WarehousePo> findWarehousePage(WarehouseVo vo, UserSessionBo user) {
         Page<WarehousePo> page = warehouseDao.findAll((root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (StringUtils.isNoneBlank(vo.getCode())) {
@@ -76,6 +94,12 @@ public class WarehouseService {
             }
             if (StringUtils.isNoneBlank(vo.getName())) {
                 predicates.add(criteriaBuilder.like(root.get("name"), "%" + vo.getName() + "%"));
+            }
+            Predicate p1 = criteriaBuilder.isNull(root.get("groupId"));
+            if (!user.getWarehouseGroupIds().isEmpty()) {
+                predicates.add(criteriaBuilder.or(p1, criteriaBuilder.in(root.get("groupId")).value(user.getWarehouseGroupIds())));
+            } else {
+                predicates.add(p1);
             }
             return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
         }, PageRequest.of(vo.getPageIndex() - 1, vo.getPageSize(), Sort.Direction.DESC, "createDate"));
@@ -91,6 +115,7 @@ public class WarehouseService {
         for (String id : vo.getIds()) {
             //查询货品/渠道引用情况 TODO
             warehouseDao.deleteById(id);
+            configWarehouseDao.deleteAllByWarehouseId(id);
         }
     }
 

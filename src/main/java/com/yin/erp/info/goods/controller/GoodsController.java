@@ -10,7 +10,7 @@ import com.yin.erp.info.goods.entity.po.GoodsPo;
 import com.yin.erp.info.goods.entity.vo.GoodsVo;
 import com.yin.erp.info.goods.entity.vo.out.Goods4BillSearchVo;
 import com.yin.erp.info.goods.service.GoodsService;
-import com.yin.erp.user.service.UserService;
+import com.yin.erp.user.user.service.LoginService;
 import org.apache.poi.hssf.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -38,9 +38,11 @@ public class GoodsController {
     @Autowired
     private GoodsService goodsService;
     @Autowired
-    private UserService userService;
+    private LoginService userService;
     @Autowired
     private RedisTemplate redisTemplate;
+    @Autowired
+    private LoginService loginService;
 
 
     /**
@@ -62,8 +64,8 @@ public class GoodsController {
      * @return
      */
     @GetMapping(value = "list")
-    public BaseJson list(GoodsVo vo) {
-        return BaseJson.getSuccess(goodsService.findGoodsPage(vo));
+    public BaseJson list(GoodsVo vo, HttpServletRequest request) {
+        return BaseJson.getSuccess(goodsService.findGoodsPage(vo, loginService.getUserSession(request)));
     }
 
     /**
@@ -73,8 +75,8 @@ public class GoodsController {
      * @return
      */
     @GetMapping(value = "list_by_bill")
-    public BaseJson listByBill(GoodsVo vo) throws MessageException {
-        Page<GoodsPo> page = goodsService.findGoodsPage(vo);
+    public BaseJson listByBill(GoodsVo vo, HttpServletRequest request) throws MessageException {
+        Page<GoodsPo> page = goodsService.findGoodsPage(vo, loginService.getUserSession(request));
         BackPageVo backPageVo = new BackPageVo();
         backPageVo.setTotalElements(page.getTotalElements());
         List<Goods4BillSearchVo> content = new LinkedList<>();
@@ -118,9 +120,9 @@ public class GoodsController {
      * @param id
      * @return
      */
-    @GetMapping(value = "getGoodsColorAndInSizeAndSizeList")
-    public BaseJson getGoodsColorAndInSizeAndSizeList(String id) {
-        return BaseJson.getSuccess(goodsService.getGoodsColorAndInSizeAndSizeList(id));
+    @GetMapping(value = "getGoodsColorAndSizeList")
+    public BaseJson getGoodsColorAndSizeList(String id) {
+        return BaseJson.getSuccess(goodsService.getGoodsColorAndSizeList(id));
     }
 
     /**
@@ -150,10 +152,10 @@ public class GoodsController {
 
 
     @GetMapping(value = "export")
-    public void export(GoodsVo vo, HttpServletResponse response) throws Exception {
+    public void export(GoodsVo vo, HttpServletRequest request, HttpServletResponse response) throws Exception {
         vo.setPageIndex(1);
         vo.setPageSize(Integer.MAX_VALUE);
-        Page<GoodsPo> goodsPage = goodsService.findGoodsPage(vo);
+        Page<GoodsPo> goodsPage = goodsService.findGoodsPage(vo, loginService.getUserSession(request));
         List<GoodsPo> list = goodsPage.getContent();
 
         HSSFWorkbook workbook = new HSSFWorkbook();

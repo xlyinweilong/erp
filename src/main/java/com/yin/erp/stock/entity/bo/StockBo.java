@@ -27,9 +27,6 @@ public class StockBo {
     private String goodsColorId;
 
     @NotBlank
-    private String goodsInSizeId;
-
-    @NotBlank
     private String goodsSizeId;
 
     @NotNull
@@ -39,12 +36,11 @@ public class StockBo {
     }
 
 
-    public StockBo(String channelId, String warehouseId, @NotBlank String goodsId, @NotBlank String goodsColorId, @NotBlank String goodsInSizeId, @NotBlank String goodsSizeId, @NotNull Integer stockCount) {
+    public StockBo(String channelId, String warehouseId, @NotBlank String goodsId, @NotBlank String goodsColorId, @NotBlank String goodsSizeId, @NotNull Integer stockCount) {
         this.channelId = channelId;
         this.warehouseId = warehouseId;
         this.goodsId = goodsId;
         this.goodsColorId = goodsColorId;
-        this.goodsInSizeId = goodsInSizeId;
         this.goodsSizeId = goodsSizeId;
         this.stockCount = stockCount;
     }

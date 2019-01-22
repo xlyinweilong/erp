@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yin.erp.base.entity.vo.in.BasePageVo;
 import com.yin.erp.info.dict.entity.bo.DictSizeBo;
 import com.yin.erp.info.goods.entity.po.GoodsColorPo;
-import com.yin.erp.info.goods.entity.po.GoodsInSizePo;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -83,6 +82,10 @@ public class GoodsVo extends BasePageVo {
 
     private String supplierName;
 
+    private String goodsGroupId;
+
+    private String goodsGroupName;
+
     private BigDecimal tagPrice1;
 
     @NotNull
@@ -90,11 +93,8 @@ public class GoodsVo extends BasePageVo {
 
     private List<GoodsColorPo> colorList;
 
-    @NotNull
-    private List<String> inSizeIdList;
-
-    private List<GoodsInSizePo> inSizeList;
-
     private List<DictSizeBo> sizeList;
+
+    private String channelId;
 
 }

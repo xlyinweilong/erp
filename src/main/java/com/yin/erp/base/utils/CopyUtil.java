@@ -40,7 +40,7 @@ public class CopyUtil {
         }
     }
 
-    public static Object copyProperties(Object dest, Object orig, String[] ignores) throws MessageException{
+    public static Object copyProperties(Object dest, Object orig, String[] ignores) throws MessageException {
         if (dest == null || orig == null) {
             return dest;
         }

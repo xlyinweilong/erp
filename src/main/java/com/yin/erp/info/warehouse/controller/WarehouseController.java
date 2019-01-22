@@ -4,9 +4,12 @@ import com.yin.erp.base.controller.BaseJson;
 import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.info.warehouse.entity.vo.WarehouseVo;
 import com.yin.erp.info.warehouse.service.WarehouseService;
+import com.yin.erp.user.user.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * 仓库制器
@@ -19,6 +22,8 @@ public class WarehouseController {
 
     @Autowired
     private WarehouseService warehouseService;
+    @Autowired
+    private LoginService loginService;
 
 
     /**
@@ -40,8 +45,8 @@ public class WarehouseController {
      * @return
      */
     @GetMapping(value = "list")
-    public BaseJson list(WarehouseVo vo) {
-        return BaseJson.getSuccess(warehouseService.findDictPage(vo));
+    public BaseJson list(WarehouseVo vo ,HttpServletRequest request) {
+        return BaseJson.getSuccess(warehouseService.findWarehousePage(vo,loginService.getUserSession(request)));
     }
 
     /**

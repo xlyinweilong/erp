@@ -2,6 +2,8 @@ package com.yin.erp.info.supplier.service;
 
 import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.base.exceptions.MessageException;
+import com.yin.erp.base.feign.user.bo.UserSessionBo;
+import com.yin.erp.info.dict.feign.DictFeign;
 import com.yin.erp.info.supplier.dao.SupplierDao;
 import com.yin.erp.info.supplier.entity.po.SupplierPo;
 import com.yin.erp.info.supplier.entity.vo.SupplierVo;
@@ -29,6 +31,8 @@ public class SupplierService {
 
     @Autowired
     private SupplierDao supplierDao;
+    @Autowired
+    private DictFeign dictFeign;
 
     /**
      * 保存
@@ -44,6 +48,8 @@ public class SupplierService {
         }
         po.setCode(vo.getCode());
         po.setName(vo.getName());
+        po.setGroupId(vo.getGroupId());
+        po.setGroupName(dictFeign.getNameById(vo.getGroupId()));
         supplierDao.save(po);
     }
 
@@ -59,6 +65,8 @@ public class SupplierService {
         dictVo.setId(dictPo.getId());
         dictVo.setCode(dictPo.getCode());
         dictVo.setName(dictPo.getName());
+        dictVo.setGroupId(dictPo.getGroupId());
+        dictVo.setGroupName(dictPo.getGroupName());
         return dictVo;
     }
 
@@ -68,7 +76,7 @@ public class SupplierService {
      * @param vo
      * @return
      */
-    public Page<SupplierPo> findDictPage(SupplierVo vo) {
+    public Page<SupplierPo> findSupplierPage(SupplierVo vo, UserSessionBo user) {
         Page<SupplierPo> page = supplierDao.findAll((root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (StringUtils.isNoneBlank(vo.getCode())) {
@@ -82,6 +90,12 @@ public class SupplierService {
                 Predicate p2 = criteriaBuilder.like(root.get("name"), "%" + vo.getSearchKey() + "%");
                 Predicate predicatesPermission = criteriaBuilder.or(p1, p2);
                 predicates.add(predicatesPermission);
+            }
+            Predicate p1 = criteriaBuilder.isNull(root.get("groupId"));
+            if (!user.getSupplierGroupIds().isEmpty()) {
+                predicates.add(criteriaBuilder.or(p1, criteriaBuilder.in(root.get("groupId")).value(user.getSupplierGroupIds())));
+            } else {
+                predicates.add(p1);
             }
             return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
         }, PageRequest.of(vo.getPageIndex() - 1, vo.getPageSize(), Sort.Direction.DESC, "createDate"));

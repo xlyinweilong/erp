@@ -4,9 +4,12 @@ import com.yin.erp.base.controller.BaseJson;
 import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.info.supplier.entity.vo.SupplierVo;
 import com.yin.erp.info.supplier.service.SupplierService;
+import com.yin.erp.user.user.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * 供应商控制器
@@ -14,11 +17,13 @@ import org.springframework.web.bind.annotation.*;
  * @author yin
  */
 @RestController
-@RequestMapping(value = "info/supplier")
+@RequestMapping(value = "api/info/supplier")
 public class SupplierController {
 
     @Autowired
     private SupplierService supplierService;
+    @Autowired
+    private LoginService loginService;
 
 
     /**
@@ -40,8 +45,8 @@ public class SupplierController {
      * @return
      */
     @GetMapping(value = "list")
-    public BaseJson list(SupplierVo vo) {
-        return BaseJson.getSuccess(supplierService.findDictPage(vo));
+    public BaseJson list(SupplierVo vo, HttpServletRequest request) {
+        return BaseJson.getSuccess(supplierService.findSupplierPage(vo, loginService.getUserSession(request)));
     }
 
     /**

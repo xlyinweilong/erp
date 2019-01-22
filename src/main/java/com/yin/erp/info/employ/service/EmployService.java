@@ -77,6 +77,12 @@ public class EmployService {
             if (StringUtils.isNoneBlank(vo.getName())) {
                 predicates.add(criteriaBuilder.like(root.get("name"), "%" + vo.getName() + "%"));
             }
+            if (StringUtils.isNoneBlank(vo.getSearchKey())) {
+                List<Predicate> predicatesSearch = new ArrayList<>();
+                predicatesSearch.add(criteriaBuilder.like(root.get("name"), "%" + vo.getSearchKey() + "%"));
+                predicatesSearch.add(criteriaBuilder.like(root.get("code"), "%" + vo.getSearchKey() + "%"));
+                predicates.add(criteriaBuilder.or(predicatesSearch.toArray(new Predicate[predicatesSearch.size()])));
+            }
             return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
         }, PageRequest.of(vo.getPageIndex() - 1, vo.getPageSize(), Sort.Direction.DESC, "createDate"));
         return page;

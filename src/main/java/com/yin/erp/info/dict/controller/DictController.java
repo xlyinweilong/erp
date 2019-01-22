@@ -4,9 +4,7 @@ import com.yin.erp.base.controller.BaseJson;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.info.dict.entity.vo.DictVo;
 import com.yin.erp.info.dict.entity.vo.in.DictDeleteVo;
-import com.yin.erp.info.dict.enums.DictChannelType;
-import com.yin.erp.info.dict.enums.DictGoodsType;
-import com.yin.erp.info.dict.enums.DictType;
+import com.yin.erp.info.dict.enums.*;
 import com.yin.erp.info.dict.service.DictService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +40,10 @@ public class DictController {
                     return BaseJson.getSuccess(DictGoodsType.getMeanList());
                 case CHANNEL:
                     return BaseJson.getSuccess(DictChannelType.getMeanList());
+                case WAREHOUSE:
+                    return BaseJson.getSuccess(DictWarehouseType.getMeanList());
+                case SUPPLIER:
+                    return BaseJson.getSuccess(DictSupplierType.getMeanList());
                 default:
                     throw new MessageException("不存在的字典");
             }

@@ -19,4 +19,6 @@ public class Goods4BillSearchVo extends GoodsVo {
     private BigDecimal tagPrice;
 
     private BigDecimal price;
+
+    private Integer stockCount;
 }

@@ -6,9 +6,7 @@ import com.yin.erp.info.dict.dao.DictSizeDao;
 import com.yin.erp.info.dict.entity.po.DictSizePo;
 import com.yin.erp.info.goods.dao.GoodsColorDao;
 import com.yin.erp.info.goods.dao.GoodsDao;
-import com.yin.erp.info.goods.dao.GoodsInSizeDao;
 import com.yin.erp.info.goods.entity.po.GoodsColorPo;
-import com.yin.erp.info.goods.entity.po.GoodsInSizePo;
 import com.yin.erp.info.goods.entity.po.GoodsPo;
 import com.yin.erp.info.warehouse.dao.WarehouseDao;
 import com.yin.erp.info.warehouse.entity.po.WarehousePo;
@@ -40,8 +38,6 @@ public class StockWarehouseService {
     @Autowired
     private GoodsColorDao goodsColorDao;
     @Autowired
-    private GoodsInSizeDao goodsInSizeDao;
-    @Autowired
     private DictSizeDao dictSizeDao;
 
     /**
@@ -50,7 +46,7 @@ public class StockWarehouseService {
      * @throws MessageException
      */
     public void add(BillDetailPo billDetailPo, String warehouseId) throws MessageException {
-        this.add(new StockBo(null, warehouseId, billDetailPo.getGoodsId(), billDetailPo.getGoodsColorId(), billDetailPo.getGoodsInSizeId(), billDetailPo.getGoodsSizeId(), billDetailPo.getBillCount()));
+        this.add(new StockBo(null, warehouseId, billDetailPo.getGoodsId(), billDetailPo.getGoodsColorId(), billDetailPo.getGoodsSizeId(), billDetailPo.getBillCount()));
     }
 
     /**
@@ -59,7 +55,7 @@ public class StockWarehouseService {
      * @throws MessageException
      */
     public void minus(BillDetailPo billDetailPo, String warehouseId) throws MessageException {
-        this.minus(new StockBo(null, warehouseId, billDetailPo.getGoodsId(), billDetailPo.getGoodsColorId(), billDetailPo.getGoodsInSizeId(), billDetailPo.getGoodsSizeId(), billDetailPo.getBillCount()));
+        this.minus(new StockBo(null, warehouseId, billDetailPo.getGoodsId(), billDetailPo.getGoodsColorId(), billDetailPo.getGoodsSizeId(), billDetailPo.getBillCount()));
     }
 
     /**
@@ -102,7 +98,7 @@ public class StockWarehouseService {
      * @throws MessageException
      */
     private StockWarehousePo getStockWarehousePo(StockBo stockBo) throws MessageException {
-        StockWarehousePo stockWarehousePo = stockWarehouseDao.findByWarehouseIdAndGoodsIdAndGoodsColorIdAndGoodsInSizeIdAndGoodsSizeId(stockBo.getWarehouseId(), stockBo.getGoodsId(), stockBo.getGoodsColorId(), stockBo.getGoodsInSizeId(), stockBo.getGoodsSizeId());
+        StockWarehousePo stockWarehousePo = stockWarehouseDao.findByWarehouseIdAndGoodsIdAndGoodsColorIdAndGoodsSizeId(stockBo.getWarehouseId(), stockBo.getGoodsId(), stockBo.getGoodsColorId(), stockBo.getGoodsSizeId());
         if (stockWarehousePo == null) {
             stockWarehousePo = new StockWarehousePo();
             WarehousePo warehousePo = warehouseDao.findById(stockBo.getWarehouseId()).get();
@@ -117,9 +113,6 @@ public class StockWarehouseService {
             stockWarehousePo.setGoodsColorId(goodsColorPo.getColorId());
             stockWarehousePo.setGoodsColorCode(goodsColorPo.getColorCode());
             stockWarehousePo.setGoodsColorName(goodsColorPo.getColorName());
-            GoodsInSizePo goodsInSizePo = goodsInSizeDao.findByGoodsIdAndInSizeId(goodsPo.getId(), stockBo.getGoodsInSizeId());
-            stockWarehousePo.setGoodsInSizeId(goodsInSizePo.getInSizeId());
-            stockWarehousePo.setGoodsInSizeName(goodsInSizePo.getInSizeName());
             DictSizePo dictSizePo = dictSizeDao.findById(stockBo.getGoodsSizeId()).get();
             if (!dictSizePo.getGroupId().equals(goodsPo.getSizeGroupId())) {
                 throw new MessageException("尺码不存在");

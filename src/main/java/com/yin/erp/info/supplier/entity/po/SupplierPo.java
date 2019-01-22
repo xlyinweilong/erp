@@ -26,4 +26,12 @@ public class SupplierPo extends BasePo {
     @Column(name = "name")
     private String name;
 
+
+    @Column(name = "group_id")
+    private String groupId;
+
+
+    @Column(name = "group_name")
+    private String groupName;
+
 }

@@ -29,5 +29,15 @@ public class UserSessionBo implements Serializable {
 
     private List<String> roles;
 
+    private List<String> powers;
+
+    private List<String> goodsGroupIds;
+
+    private List<String> warehouseGroupIds;
+
+    private List<String> channelGroupIds;
+
+    private List<String> supplierGroupIds;
+
 
 }

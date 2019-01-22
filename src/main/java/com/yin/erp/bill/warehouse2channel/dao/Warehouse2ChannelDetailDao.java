@@ -1,10 +1,11 @@
 package com.yin.erp.bill.warehouse2channel.dao;
 
+import com.yin.erp.bill.common.dao.BaseBillDetailDao;
+import com.yin.erp.bill.common.entity.po.BillDetailPo;
 import com.yin.erp.bill.warehouse2channel.entity.po.Warehouse2ChannelDetailPo;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.query.Param;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -15,11 +16,13 @@ import java.util.List;
  * @author yin
  */
 @Resource
-public interface Warehouse2ChannelDetailDao extends PagingAndSortingRepository<Warehouse2ChannelDetailPo, String>, JpaSpecificationExecutor {
+public interface Warehouse2ChannelDetailDao extends BaseBillDetailDao<Warehouse2ChannelDetailPo, String> {
 
     @Modifying
     @Query("delete from Warehouse2ChannelDetailPo t where t.billId = :billId")
-    int deleteAllByBillId(String billId);
+    @Override
+    int deleteAllByBillId(@Param("billId") String billId);
 
-    List<Warehouse2ChannelDetailPo> findByBillId(String billId);
+    @Override
+    List<BillDetailPo> findByBillId(String billId);
 }

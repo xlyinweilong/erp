@@ -24,6 +24,7 @@ import java.util.List;
 public class BillVo extends BasePageVo {
 
     private String id;
+
     /**
      * 单号
      */
@@ -32,17 +33,33 @@ public class BillVo extends BasePageVo {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private LocalDate billDate;
 
+    private String parentBillId;
+
+    private String parentBillCode;
+
     private String supplierId;
 
     private String warehouseId;
+
+    private String channelId;
+
+    private String toChannelId;
 
     private String supplierName;
 
     private String warehouseName;
 
+    private String channelName;
+
+    private String toChannelName;
+
     private String supplierCode;
 
     private String warehouseCode;
+
+    private String channelCode;
+
+    private String toChannelCode;
 
     private BigDecimal totalAmount;
 

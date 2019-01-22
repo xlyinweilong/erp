@@ -1,5 +1,7 @@
 package com.yin.erp.bill.warehouse2channel.entity.po;
 
+import com.yin.erp.bill.common.entity.po.BillDetailPo;
+import com.yin.erp.bill.common.entity.po.BillGoodsPo;
 import com.yin.erp.bill.common.entity.po.BillPo;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,5 +45,15 @@ public class Warehouse2ChannelPo extends BillPo {
 
     @Column(name = "channel_code")
     private String channelCode;
+
+    @Override
+    public BillGoodsPo getBillGoodsInstance() {
+        return new Warehouse2ChannelGoodsPo();
+    }
+
+    @Override
+    public BillDetailPo getBillDetailInstance() {
+        return new Warehouse2ChannelDetailPo();
+    }
 
 }

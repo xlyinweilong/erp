@@ -5,6 +5,7 @@ import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.info.barcode.entity.vo.BarCodeVo;
 import com.yin.erp.info.barcode.service.BarCodeService;
+import com.yin.erp.user.user.service.LoginService;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -21,6 +22,8 @@ public class BarCodeController {
 
     @Autowired
     private BarCodeService barCodeService;
+    @Autowired
+    private LoginService loginService;
 
 
     /**
@@ -64,8 +67,8 @@ public class BarCodeController {
      * @throws MessageException
      */
     @GetMapping(value = "info_by_code")
-    public BaseJson infoByCode(String code) throws MessageException {
-        return BaseJson.getSuccess(barCodeService.findByCode(code));
+    public BaseJson infoByCode(String code,HttpServletRequest request) throws MessageException {
+        return BaseJson.getSuccess(barCodeService.findByCode(code,loginService.getUserSession(request)));
     }
 
 

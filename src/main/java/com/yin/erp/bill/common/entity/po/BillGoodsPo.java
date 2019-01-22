@@ -67,4 +67,5 @@ public class BillGoodsPo extends BaseDataPo {
      */
     @Column(name = "bill_count")
     private Integer billCount = 0;
+
 }

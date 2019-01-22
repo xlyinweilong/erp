@@ -2,9 +2,9 @@ package com.yin.erp.info.dict.dao;
 
 
 import com.yin.erp.info.dict.entity.po.DictSizePo;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 
 import javax.annotation.Resource;
@@ -16,7 +16,7 @@ import java.util.List;
  * @author yin
  */
 @Resource
-public interface DictSizeDao extends PagingAndSortingRepository<DictSizePo, String>, JpaSpecificationExecutor {
+public interface DictSizeDao extends JpaRepository<DictSizePo, String>, JpaSpecificationExecutor {
 
     /**
      * 根据尺码组查询

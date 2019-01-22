@@ -88,6 +88,12 @@ public class GoodsPo extends BasePo {
     @Column(name = "sex_name")
     private String sexName;
 
+    @Column(name = "goods_group_id")
+    private String goodsGroupId;
+
+    @Column(name = "goods_group_name")
+    private String goodsGroupName;
+
     @Column(name = "supplier_id")
     private String supplierId;
 

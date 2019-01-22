@@ -16,9 +16,7 @@ import com.yin.erp.info.dict.enums.DictType;
 import com.yin.erp.info.dict.feign.DictFeign;
 import com.yin.erp.info.goods.dao.GoodsColorDao;
 import com.yin.erp.info.goods.dao.GoodsDao;
-import com.yin.erp.info.goods.dao.GoodsInSizeDao;
 import com.yin.erp.info.goods.entity.po.GoodsColorPo;
-import com.yin.erp.info.goods.entity.po.GoodsInSizePo;
 import com.yin.erp.info.goods.entity.po.GoodsPo;
 import com.yin.erp.info.goods.entity.vo.GoodsVo;
 import com.yin.erp.info.supplier.dao.SupplierDao;
@@ -64,8 +62,6 @@ public class GoodsService {
     @Autowired
     private GoodsColorDao goodsColorDao;
     @Autowired
-    private GoodsInSizeDao goodsInSizeDao;
-    @Autowired
     private DictFeign dictFeign;
     @Autowired
     private SupplierFeign supplierFeign;
@@ -91,7 +87,6 @@ public class GoodsService {
         if (StringUtils.isNotBlank(vo.getId())) {
             po = goodsDao.findById(vo.getId()).get();
             goodsColorDao.deleteByGoodsId(vo.getId());
-            goodsInSizeDao.deleteByGoodsId(vo.getId());
             //发送给队列，全局做数据更新 TODO
         }
         po.setCode(vo.getCode());
@@ -119,6 +114,8 @@ public class GoodsService {
         po.setStyleName(dictFeign.getNameById(vo.getStyleId()));
         po.setSexId(vo.getSexId());
         po.setSexName(dictFeign.getNameById(vo.getSexId()));
+        po.setGoodsGroupId(vo.getGoodsGroupId());
+        po.setGoodsGroupName(dictFeign.getNameById(vo.getGoodsGroupId()));
         po.setTagPrice1(vo.getTagPrice1());
         goodsDao.save(po);
         //货品颜色
@@ -130,15 +127,6 @@ public class GoodsService {
             goodsColorPo.setGoodsId(po.getId());
             goodsColorDao.save(goodsColorPo);
         }
-        //货品内长
-        for (String inSizeId : vo.getInSizeIdList()) {
-            GoodsInSizePo goodsInSizePo = new GoodsInSizePo();
-            goodsInSizePo.setInSizeId(inSizeId);
-            goodsInSizePo.setInSizeName(dictFeign.getNameById(inSizeId));
-            goodsInSizePo.setGoodsId(po.getId());
-            goodsInSizeDao.save(goodsInSizePo);
-        }
-
     }
 
     /**
@@ -177,8 +165,9 @@ public class GoodsService {
         dictVo.setSupplierId(dictPo.getSupplierId());
         dictVo.setSupplierName(dictPo.getSupplierName());
         dictVo.setTagPrice1(dictPo.getTagPrice1());
+        dictVo.setGoodsGroupId(dictPo.getGoodsGroupId());
+        dictVo.setGoodsGroupName(dictPo.getGoodsGroupName());
         dictVo.setColorList(goodsColorDao.findByGoodsId(dictPo.getId()));
-        dictVo.setInSizeList(goodsInSizeDao.findByGoodsId(dictPo.getId()));
         return dictVo;
     }
 
@@ -188,7 +177,7 @@ public class GoodsService {
      * @param vo
      * @return
      */
-    public Page<GoodsPo> findGoodsPage(GoodsVo vo) {
+    public Page<GoodsPo> findGoodsPage(GoodsVo vo, UserSessionBo user) {
         Page<GoodsPo> page = goodsDao.findAll((root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (StringUtils.isNoneBlank(vo.getCode())) {
@@ -251,6 +240,12 @@ public class GoodsService {
                 Predicate predicatesPermission = criteriaBuilder.or(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14);
                 predicates.add(predicatesPermission);
             }
+            Predicate p1 = criteriaBuilder.isNull(root.get("goodsGroupId"));
+            if (!user.getGoodsGroupIds().isEmpty()) {
+                predicates.add(criteriaBuilder.or(p1, criteriaBuilder.in(root.get("goodsGroupId")).value(user.getGoodsGroupIds())));
+            } else {
+                predicates.add(p1);
+            }
             return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
         }, PageRequest.of(vo.getPageIndex() - 1, vo.getPageSize(), Sort.Direction.DESC, "createDate"));
         return page;
@@ -275,7 +270,6 @@ public class GoodsService {
     public void deleteById(String id) {
         //查询货品/渠道引用情况 TODO
         goodsColorDao.deleteByGoodsId(id);
-        goodsInSizeDao.deleteByGoodsId(id);
         goodsDao.deleteById(id);
     }
 
@@ -285,13 +279,12 @@ public class GoodsService {
      * @param id
      * @return
      */
-    public GoodsVo getGoodsColorAndInSizeAndSizeList(String id) {
+    public GoodsVo getGoodsColorAndSizeList(String id) {
         GoodsVo vo = new GoodsVo();
         GoodsPo goodsPo = goodsDao.findById(id).get();
         List<DictSizeBo> sizeList = dictFeign.findDictSizePo(goodsPo.getSizeGroupId());
         vo.setSizeList(sizeList);
         vo.setColorList(goodsColorDao.findByGoodsId(id));
-        vo.setInSizeList(goodsInSizeDao.findByGoodsId(id));
         return vo;
     }
 
@@ -310,7 +303,6 @@ public class GoodsService {
             Sheet sheet = workbook.getSheetAt(0);
             int count = 0;
             List<GoodsPo> goodsList = new ArrayList();
-            List<GoodsInSizePo> goodsInSizeList = new ArrayList<>();
             List<GoodsColorPo> goodsColorList = new ArrayList<>();
             int errorCellNum = 17;
             boolean success = true;
@@ -328,21 +320,20 @@ public class GoodsService {
                     String sizeGroupName = ExcelReadUtil.getString(row.getCell(2));
                     String colorCode = ExcelReadUtil.getString(row.getCell(3));
                     String colorName = ExcelReadUtil.getString(row.getCell(4));
-                    String inSizeName = ExcelReadUtil.getString(row.getCell(5));
-                    String brandName = ExcelReadUtil.getString(row.getCell(6));
-                    String categoryName = ExcelReadUtil.getString(row.getCell(7));
-                    String category2Name = ExcelReadUtil.getString(row.getCell(8));
-                    String seriesName = ExcelReadUtil.getString(row.getCell(9));
-                    String patternName = ExcelReadUtil.getString(row.getCell(10));
-                    String styleName = ExcelReadUtil.getString(row.getCell(11));
-                    String seasonName = ExcelReadUtil.getString(row.getCell(12));
-                    String yearName = ExcelReadUtil.getString(row.getCell(13));
-                    String sexName = ExcelReadUtil.getString(row.getCell(14));
-                    String supplierCode = ExcelReadUtil.getString(row.getCell(15));
-                    BigDecimal tagPrice1 = ExcelReadUtil.getBigDecimal(row.getCell(16));
+                    String brandName = ExcelReadUtil.getString(row.getCell(5));
+                    String categoryName = ExcelReadUtil.getString(row.getCell(6));
+                    String category2Name = ExcelReadUtil.getString(row.getCell(7));
+                    String seriesName = ExcelReadUtil.getString(row.getCell(8));
+                    String patternName = ExcelReadUtil.getString(row.getCell(9));
+                    String styleName = ExcelReadUtil.getString(row.getCell(10));
+                    String seasonName = ExcelReadUtil.getString(row.getCell(11));
+                    String yearName = ExcelReadUtil.getString(row.getCell(12));
+                    String sexName = ExcelReadUtil.getString(row.getCell(13));
+                    String supplierCode = ExcelReadUtil.getString(row.getCell(14));
+                    BigDecimal tagPrice1 = ExcelReadUtil.getBigDecimal(row.getCell(15));
 
                     if (StringUtils.isBlank(code) || StringUtils.isBlank(name) || StringUtils.isBlank(sizeGroupName) || StringUtils.isBlank(colorCode) || StringUtils.isBlank(colorName)
-                            || StringUtils.isBlank(inSizeName) || tagPrice1 == null) {
+                            || tagPrice1 == null) {
                         ExcelReadUtil.addErrorToRow(row, errorCellNum, "缺少必要数据");
                         success = false;
                         continue;
@@ -371,7 +362,6 @@ public class GoodsService {
                         goodsPo.setId(goodsList.get(goodsList.indexOf(goodsPo)).getId());
                     }
 
-                    GoodsInSizePo goodsInSizePo = new GoodsInSizePo();
                     GoodsColorPo goodsColorPo = new GoodsColorPo();
 
                     DictPo dictSizePo = dictDao.findByNameAndType1AndType2(sizeGroupName, DictType.GOODS.name(), DictGoodsType.SIZE_GROUP.name());
@@ -410,21 +400,6 @@ public class GoodsService {
 
                     } else {
                         goodsColorList.add(goodsColorPo);
-                    }
-
-                    //内长
-                    DictPo dictInSize = dictDao.findByNameAndType1AndType2(inSizeName, DictType.GOODS.name(), DictGoodsType.IN_SIZE.name());
-                    if (dictInSize == null) {
-                        dictInSize = new DictPo(inSizeName, DictType.GOODS.name(), DictGoodsType.IN_SIZE.name());
-                        dictDao.save(dictInSize);
-                    }
-                    goodsInSizePo.setGoodsId(goodsPo.getId());
-                    goodsInSizePo.setInSizeId(dictInSize.getId());
-                    goodsInSizePo.setInSizeName(dictInSize.getName());
-                    if (goodsInSizeList.contains(goodsInSizePo)) {
-
-                    } else {
-                        goodsInSizeList.add(goodsInSizePo);
                     }
 
                     //品牌
@@ -503,7 +478,6 @@ public class GoodsService {
             }
             if (success) {
                 goodsDao.saveAll(goodsList);
-                goodsInSizeDao.saveAll(goodsInSizeList);
                 goodsColorDao.saveAll(goodsColorList);
                 operations.set(userSessionBo.getId() + ":upload:goods", new BaseUploadMessage(1, TimeUtil.useTime(startTime)), 10L, TimeUnit.MINUTES);
             } else {

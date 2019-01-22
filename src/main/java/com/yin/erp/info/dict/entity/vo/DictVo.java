@@ -35,4 +35,14 @@ public class DictVo extends BasePageVo {
      */
     private String searchKey;
 
+    public DictVo() {
+    }
+
+    public DictVo(String type1, String type2,int pageIndex,int pageSize) {
+        this.type1 = type1;
+        this.type2 = type2;
+        setPageIndex(pageIndex);
+        setPageSize(pageSize);
+    }
+
 }

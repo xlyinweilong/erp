@@ -21,4 +21,8 @@ public class SupplierVo extends BasePageVo {
 
     private String searchKey;
 
+    private String groupId;
+
+    private String groupName;
+
 }

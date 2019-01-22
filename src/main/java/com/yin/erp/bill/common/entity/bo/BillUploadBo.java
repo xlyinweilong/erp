@@ -31,8 +31,6 @@ public class BillUploadBo {
 
     private String goodsColorName;
 
-    private String goodsInSizeName;
-
     private String goodsSizeName;
 
     private BigDecimal price;
@@ -47,13 +45,12 @@ public class BillUploadBo {
         return Objects.equals(goodsCode, that.goodsCode) &&
                 Objects.equals(goodsColorCode, that.goodsColorCode) &&
                 Objects.equals(goodsColorName, that.goodsColorName) &&
-                Objects.equals(goodsInSizeName, that.goodsInSizeName) &&
                 Objects.equals(goodsSizeName, that.goodsSizeName);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(goodsCode, goodsColorCode, goodsColorName, goodsInSizeName, goodsSizeName);
+        return Objects.hash(goodsCode, goodsColorCode, goodsColorName, goodsSizeName);
     }
 }

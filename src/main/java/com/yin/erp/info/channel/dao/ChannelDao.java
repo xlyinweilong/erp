@@ -2,8 +2,8 @@ package com.yin.erp.info.channel.dao;
 
 
 import com.yin.erp.info.channel.entity.po.ChannelPo;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.repository.PagingAndSortingRepository;
 
 import javax.annotation.Resource;
 
@@ -13,6 +13,6 @@ import javax.annotation.Resource;
  * @author yin
  */
 @Resource
-public interface ChannelDao extends PagingAndSortingRepository<ChannelPo, String>, JpaSpecificationExecutor {
-
+public interface ChannelDao extends JpaRepository<ChannelPo, String>, JpaSpecificationExecutor {
+    ChannelPo findByCode(String code);
 }

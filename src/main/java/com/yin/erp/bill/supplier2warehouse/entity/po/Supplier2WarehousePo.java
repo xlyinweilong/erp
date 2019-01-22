@@ -1,5 +1,9 @@
 package com.yin.erp.bill.supplier2warehouse.entity.po;
 
+import com.yin.erp.bill.channel2supplier.entity.po.Channel2SupplierDetailPo;
+import com.yin.erp.bill.channel2supplier.entity.po.Channel2SupplierGoodsPo;
+import com.yin.erp.bill.common.entity.po.BillDetailPo;
+import com.yin.erp.bill.common.entity.po.BillGoodsPo;
 import com.yin.erp.bill.common.entity.po.BillPo;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,4 +48,13 @@ public class Supplier2WarehousePo extends BillPo {
     @Column(name = "warehouse_code")
     private String warehouseCode;
 
+    @Override
+    public BillGoodsPo getBillGoodsInstance() {
+        return new Supplier2WarehouseGoodsPo();
+    }
+
+    @Override
+    public BillDetailPo getBillDetailInstance() {
+        return new Supplier2WarehouseDetailPo();
+    }
 }

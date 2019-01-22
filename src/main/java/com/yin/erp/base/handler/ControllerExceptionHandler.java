@@ -24,6 +24,18 @@ public class ControllerExceptionHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(ControllerExceptionHandler.class);
 
     /**
+     * 处理非受检异常
+     *
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(value = Throwable.class)
+    @ResponseBody
+    public BaseJson handleThrowable(Throwable e) {
+        return BaseJson.getError("系统繁忙，请稍后再试");
+    }
+
+    /**
      * 全局异常处理
      *
      * @param e

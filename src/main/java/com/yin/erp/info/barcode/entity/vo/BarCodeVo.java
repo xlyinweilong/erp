@@ -31,10 +31,6 @@ public class BarCodeVo extends BasePageVo {
 
     private String goodsColorName;
 
-    private String goodsInSizeId;
-
-    private String goodsInSizeName;
-
     private String goodsSizeId;
 
     private String goodsSizeName;

@@ -1,7 +1,7 @@
 package com.yin.erp.base.interceptor;
 
 import com.yin.erp.base.anno.LoginAnno;
-import com.yin.erp.user.service.UserService;
+import com.yin.erp.user.user.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.ModelAndView;
@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 public class LoginInterceptor extends HandlerInterceptorAdapter {
 
     @Autowired
-    private UserService userService;
+    private LoginService userService;
 
     @Override
     public void afterCompletion(HttpServletRequest arg0, HttpServletResponse arg1, Object arg2, Exception arg3)

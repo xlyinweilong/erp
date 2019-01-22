@@ -19,4 +19,6 @@ public class EmployVo extends BasePageVo {
 
     private String name;
 
+    private String searchKey;
+
 }

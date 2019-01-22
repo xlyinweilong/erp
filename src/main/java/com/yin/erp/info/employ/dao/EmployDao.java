@@ -2,8 +2,8 @@ package com.yin.erp.info.employ.dao;
 
 
 import com.yin.erp.info.employ.entity.po.EmployPo;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.repository.PagingAndSortingRepository;
 
 import javax.annotation.Resource;
 
@@ -13,6 +13,6 @@ import javax.annotation.Resource;
  * @author yin
  */
 @Resource
-public interface EmployDao extends PagingAndSortingRepository<EmployPo, String>, JpaSpecificationExecutor {
+public interface EmployDao extends JpaRepository<EmployPo, String>, JpaSpecificationExecutor {
 
 }

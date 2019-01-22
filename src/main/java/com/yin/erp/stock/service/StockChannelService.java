@@ -1,15 +1,14 @@
 package com.yin.erp.stock.service;
 
 import com.yin.erp.base.exceptions.MessageException;
+import com.yin.erp.bill.common.entity.po.BillDetailPo;
 import com.yin.erp.info.channel.dao.ChannelDao;
 import com.yin.erp.info.channel.entity.po.ChannelPo;
 import com.yin.erp.info.dict.dao.DictSizeDao;
 import com.yin.erp.info.dict.entity.po.DictSizePo;
 import com.yin.erp.info.goods.dao.GoodsColorDao;
 import com.yin.erp.info.goods.dao.GoodsDao;
-import com.yin.erp.info.goods.dao.GoodsInSizeDao;
 import com.yin.erp.info.goods.entity.po.GoodsColorPo;
-import com.yin.erp.info.goods.entity.po.GoodsInSizePo;
 import com.yin.erp.info.goods.entity.po.GoodsPo;
 import com.yin.erp.stock.dao.StockChannelDao;
 import com.yin.erp.stock.entity.bo.StockBo;
@@ -39,10 +38,25 @@ public class StockChannelService {
     @Autowired
     private GoodsColorDao goodsColorDao;
     @Autowired
-    private GoodsInSizeDao goodsInSizeDao;
-    @Autowired
     private DictSizeDao dictSizeDao;
 
+    /**
+     * 增加库存
+     *
+     * @throws MessageException
+     */
+    public void add(BillDetailPo billDetailPo, String channelId) throws MessageException {
+        this.add(new StockBo(channelId, null, billDetailPo.getGoodsId(), billDetailPo.getGoodsColorId(), billDetailPo.getGoodsSizeId(), billDetailPo.getBillCount()));
+    }
+
+    /**
+     * 增加减少
+     *
+     * @throws MessageException
+     */
+    public void minus(BillDetailPo billDetailPo, String channelId) throws MessageException {
+        this.minus(new StockBo(channelId, null, billDetailPo.getGoodsId(), billDetailPo.getGoodsColorId(), billDetailPo.getGoodsSizeId(), billDetailPo.getBillCount()));
+    }
 
     /**
      * 增加库存
@@ -84,7 +98,7 @@ public class StockChannelService {
      * @throws MessageException
      */
     private StockChannelPo getStockChannelPo(StockBo stockBo) throws MessageException {
-        StockChannelPo stockChannelPo = stockChannelDao.findByChannelIdAndGoodsIdAndGoodsColorIdAndGoodsInSizeIdAndGoodsSizeId(stockBo.getChannelId(), stockBo.getGoodsId(), stockBo.getGoodsColorId(), stockBo.getGoodsInSizeId(), stockBo.getGoodsSizeId());
+        StockChannelPo stockChannelPo = stockChannelDao.findByChannelIdAndGoodsIdAndGoodsColorIdAndGoodsSizeId(stockBo.getChannelId(), stockBo.getGoodsId(), stockBo.getGoodsColorId(), stockBo.getGoodsSizeId());
         if (stockChannelPo == null) {
             stockChannelPo = new StockChannelPo();
             ChannelPo channelPo = channelDao.findById(stockBo.getChannelId()).get();
@@ -99,9 +113,6 @@ public class StockChannelService {
             stockChannelPo.setGoodsColorId(goodsColorPo.getColorId());
             stockChannelPo.setGoodsColorCode(goodsColorPo.getColorCode());
             stockChannelPo.setGoodsColorName(goodsColorPo.getColorName());
-            GoodsInSizePo goodsInSizePo = goodsInSizeDao.findByGoodsIdAndInSizeId(goodsPo.getId(), stockBo.getGoodsInSizeId());
-            stockChannelPo.setGoodsInSizeId(goodsInSizePo.getInSizeId());
-            stockChannelPo.setGoodsInSizeName(goodsInSizePo.getInSizeName());
             DictSizePo dictSizePo = dictSizeDao.findById(stockBo.getGoodsSizeId()).get();
             if (!dictSizePo.getGroupId().equals(goodsPo.getSizeGroupId())) {
                 throw new MessageException("尺码不存在");
@@ -110,6 +121,19 @@ public class StockChannelService {
             stockChannelPo.setGoodsSizeName(dictSizePo.getName());
         }
         return stockChannelPo;
+    }
+
+    /**
+     * 查询库存
+     *
+     * @param channelId
+     * @param goodsId
+     * @param colorId
+     * @param sizeId
+     * @return
+     */
+    public Integer stockCount(String channelId, String goodsId, String colorId, String sizeId) {
+        return stockChannelDao.findByChannelIdAndGoodsIdAndGoodsColorIdAndGoodsSizeId(channelId, goodsId, colorId, sizeId).getStockCount();
     }
 
 }

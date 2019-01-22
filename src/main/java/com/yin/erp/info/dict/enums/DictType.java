@@ -11,12 +11,16 @@ import java.util.Map;
  * @author yin
  */
 public enum DictType {
-    GOODS, CHANNEL;
+    GOODS, CHANNEL, SUPPLIER, WAREHOUSE;
 
     public String getMean() {
         switch (this) {
             case GOODS:
                 return "货品";
+            case SUPPLIER:
+                return "供应商";
+            case WAREHOUSE:
+                return "仓库";
             case CHANNEL:
                 return "渠道";
             default:

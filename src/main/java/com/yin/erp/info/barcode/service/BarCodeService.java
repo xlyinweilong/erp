@@ -2,6 +2,7 @@ package com.yin.erp.info.barcode.service;
 
 import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.base.exceptions.MessageException;
+import com.yin.erp.base.feign.user.bo.UserSessionBo;
 import com.yin.erp.base.utils.CopyUtil;
 import com.yin.erp.info.barcode.dao.BarCodeDao;
 import com.yin.erp.info.barcode.entity.po.BarCodePo;
@@ -62,8 +63,6 @@ public class BarCodeService {
         po.setGoodsColorId(vo.getGoodsColorId());
         po.setGoodsColorCode(dictFeign.getCodeById(vo.getGoodsColorId()));
         po.setGoodsColorName(dictFeign.getCodeById(vo.getGoodsColorId()));
-        po.setGoodsInSizeId(vo.getGoodsInSizeId());
-        po.setGoodsInSizeName(dictFeign.getNameById(vo.getGoodsInSizeId()));
         po.setGoodsSizeId(vo.getGoodsSizeId());
         po.setGoodsSizeName(dictFeign.findSizeNamenById(vo.getGoodsSizeId()));
         barCodeDao.save(po);
@@ -90,7 +89,7 @@ public class BarCodeService {
      * @return
      * @throws MessageException
      */
-    public BarCodeVo findByCode(String code) throws MessageException {
+    public BarCodeVo findByCode(String code, UserSessionBo user) throws MessageException {
         BarCodePo dictPo = barCodeDao.findByCode(code);
         if (dictPo == null) {
             throw new MessageException("不存在条形码：" + code);
@@ -101,6 +100,9 @@ public class BarCodeService {
         dictVo.setGoodsName(dictPo.getGoodsName());
         //查询价格
         GoodsPo goodsPo = goodsDao.findByCode(dictPo.getGoodsCode());
+        if (goodsPo.getGoodsGroupId() != null && !user.getGoodsGroupIds().contains(goodsPo.getGoodsGroupId())) {
+            throw new MessageException("条形码：" + code + "对应的货品，没有操作权限");
+        }
         dictVo.setPrice(goodsPo.getTagPrice1());
         dictVo.setTagPrice(goodsPo.getTagPrice1());
         return dictVo;

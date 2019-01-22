@@ -25,10 +25,6 @@ public class BillDetailVo extends BaseVo {
     @Size(min = 1, max = 32, message = "请输入颜色")
     private String colorId;
 
-    @NotBlank(message = "请输入内长")
-    @Size(min = 1, max = 32, message = "请输入内长")
-    private String inSizeId;
-
     @NotBlank(message = "请输入尺码")
     @Size(min = 1, max = 32, message = "请输入尺码")
     private String sizeId;

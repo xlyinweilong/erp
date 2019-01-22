@@ -4,9 +4,12 @@ import com.yin.erp.base.controller.BaseJson;
 import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.info.channel.entity.vo.ChannelVo;
 import com.yin.erp.info.channel.service.ChannelService;
+import com.yin.erp.user.user.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * 渠道制器
@@ -19,6 +22,8 @@ public class ChannelController {
 
     @Autowired
     private ChannelService channelService;
+    @Autowired
+    private LoginService loginService;
 
 
     /**
@@ -40,8 +45,8 @@ public class ChannelController {
      * @return
      */
     @GetMapping(value = "list")
-    public BaseJson list(ChannelVo vo) {
-        return BaseJson.getSuccess(channelService.findDictPage(vo));
+    public BaseJson list(ChannelVo vo, HttpServletRequest request) {
+        return BaseJson.getSuccess(channelService.findChannelPage(vo, loginService.getUserSession(request)));
     }
 
     /**

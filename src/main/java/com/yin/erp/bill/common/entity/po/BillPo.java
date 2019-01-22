@@ -4,10 +4,7 @@ import com.yin.erp.base.entity.po.BasePo;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Date;
@@ -89,5 +86,58 @@ public class BillPo extends BasePo {
     @Column(name = "audit_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date auditDate;
+
+    /**
+     * 渠道
+     */
+    @Transient
+    private String channelId;
+
+    @Transient
+    private String channelName;
+
+    @Transient
+    private String channelCode;
+
+    @Transient
+    private String toChannelId;
+
+    @Transient
+    private String toChannelName;
+
+    @Transient
+    private String toChannelCode;
+
+    /**
+     * 仓库
+     */
+    @Transient
+    private String warehouseId;
+
+    @Transient
+    private String warehouseName;
+
+    @Transient
+    private String warehouseCode;
+
+    /**
+     * 供应商
+     */
+    @Transient
+    private String supplierId;
+
+    @Transient
+    private String supplierName;
+
+    @Transient
+    private String supplierCode;
+
+    public BillGoodsPo getBillGoodsInstance() {
+        return new BillGoodsPo();
+    }
+
+    public BillDetailPo getBillDetailInstance() {
+        return new BillDetailPo();
+    }
 
 }

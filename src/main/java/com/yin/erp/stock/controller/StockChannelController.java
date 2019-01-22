@@ -1,9 +1,8 @@
 package com.yin.erp.stock.controller;
 
 import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.info.channel.entity.vo.ChannelVo;
-import com.yin.erp.info.channel.service.ChannelService;
+import com.yin.erp.stock.service.StockChannelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class StockChannelController {
 
     @Autowired
-    private ChannelService channelService;
+    private StockChannelService stockChannelService;
 
 
     /**
@@ -29,42 +28,18 @@ public class StockChannelController {
      */
     @PostMapping(value = "save", consumes = "application/json")
     public BaseJson save(@Validated @RequestBody ChannelVo vo) throws Exception {
-        channelService.save(vo);
         return BaseJson.getSuccess();
     }
 
     /**
-     * 列表
+     * 渠道库存详情
      *
-     * @param vo
      * @return
      */
-    @GetMapping(value = "list")
-    public BaseJson list(ChannelVo vo) {
-        return BaseJson.getSuccess(channelService.findDictPage(vo));
+    @GetMapping(value = "stock_info")
+    public BaseJson channelStockInfo(String channelId, String goodsId, String goodsColorId, String goodsSizeId) {
+        return BaseJson.getSuccess(stockChannelService.stockCount(channelId, goodsId, goodsColorId, goodsSizeId));
     }
 
-    /**
-     * 详情
-     *
-     * @param id
-     * @return
-     */
-    @GetMapping(value = "info")
-    public BaseJson info(String id) {
-        return BaseJson.getSuccess(channelService.findById(id));
-    }
-
-    /**
-     * 删除
-     *
-     * @param vo
-     * @return
-     */
-    @PostMapping(value = "delete")
-    public BaseJson logout(@RequestBody BaseDeleteVo vo) {
-        channelService.delete(vo);
-        return BaseJson.getSuccess("删除成功");
-    }
 
 }

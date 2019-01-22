@@ -13,7 +13,7 @@ public enum DictChannelType {
     public String getMean() {
         switch (this) {
             case CHANNEL_GROUP:
-                return "渠道组";
+                return "组";
             default:
                 return null;
         }

@@ -8,7 +8,7 @@ import java.util.*;
  * @author yin
  */
 public enum DictGoodsType {
-    COLOR, IN_SIZE, SIZE_GROUP, CATEGORY, CATEGORY_2, BRAND,SERIES, PATTERN, STYLE, YEAR, SEASON, SEX;
+    COLOR, SIZE_GROUP, CATEGORY, CATEGORY_2, BRAND, SERIES, PATTERN, STYLE, YEAR, SEASON, SEX, GOODS_GROUP;
 
     /**
      * 判断是否含有编号
@@ -24,8 +24,6 @@ public enum DictGoodsType {
         switch (this) {
             case COLOR:
                 return "颜色";
-            case IN_SIZE:
-                return "内长";
             case SIZE_GROUP:
                 return "尺码组";
             case CATEGORY:
@@ -46,6 +44,8 @@ public enum DictGoodsType {
                 return "季节";
             case SEX:
                 return "性别";
+            case GOODS_GROUP:
+                return "组";
             default:
                 return null;
         }
