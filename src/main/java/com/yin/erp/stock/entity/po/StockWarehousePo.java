@@ -55,4 +55,10 @@ public class StockWarehousePo extends BasePo {
 
     @Column(name = "stock_count")
     private Integer stockCount = 0;
+
+    @Column(name = "warehouse_group_id")
+    private String warehouseGroupId;
+
+    @Column(name = "goods_group_id")
+    private String goodsGroupId;
 }

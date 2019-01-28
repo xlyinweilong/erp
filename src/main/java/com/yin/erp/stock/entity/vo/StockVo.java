@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 渠道VO
+ * kuVO
  *
  * @author yin
  */
@@ -13,10 +13,34 @@ import lombok.Setter;
 @Setter
 public class StockVo extends BasePageVo {
 
-    private String id;
+    private String channelId;
 
-    private String code;
+    private String channelCode;
 
-    private String name;
+    private String channelName;
+
+    private String warehouseId;
+
+    private String warehouseCode;
+
+    private String warehouseName;
+
+    private String goodsId;
+
+    private String goodsCode;
+
+    private String goodsName;
+
+    private String goodsColorId;
+
+    private String goodsColorCode;
+
+    private String goodsColorName;
+
+    private String goodsSizeId;
+
+    private String goodsSizeName;
+
+    private Integer stockCount = 0;
 
 }

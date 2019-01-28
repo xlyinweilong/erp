@@ -2,10 +2,10 @@ package com.yin.erp.stock.controller;
 
 import com.yin.erp.base.controller.BaseJson;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
-import com.yin.erp.stock.dao.StockChannelDao;
-import com.yin.erp.stock.entity.po.StockChannelPo;
+import com.yin.erp.stock.dao.StockWarehouseDao;
+import com.yin.erp.stock.entity.po.StockWarehousePo;
 import com.yin.erp.stock.entity.vo.StockVo;
-import com.yin.erp.stock.service.StockChannelService;
+import com.yin.erp.stock.service.StockWarehouseService;
 import com.yin.erp.user.user.service.LoginService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,13 +26,13 @@ import java.util.List;
  * @author yin
  */
 @RestController
-@RequestMapping(value = "api/stock/channel")
-public class StockChannelController {
+@RequestMapping(value = "api/stock/warehouse")
+public class StockWarehouseController {
 
     @Autowired
-    private StockChannelService stockChannelService;
+    private StockWarehouseService stockWarehouseService;
     @Autowired
-    private StockChannelDao stockChannelDao;
+    private StockWarehouseDao stockWarehouseDao;
     @Autowired
     private LoginService loginService;
 
@@ -44,17 +44,17 @@ public class StockChannelController {
      * @return
      */
     @GetMapping(value = "stock_info")
-    public BaseJson stockInfo(String channelId, String goodsId, String goodsColorId, String goodsSizeId) {
-        return BaseJson.getSuccess(stockChannelDao.findByChannelIdAndGoodsIdAndGoodsColorIdAndGoodsSizeId(channelId, goodsId, goodsColorId, goodsSizeId));
+    public BaseJson stockInfo(String warehouseId, String goodsId, String goodsColorId, String goodsSizeId) {
+        return BaseJson.getSuccess(stockWarehouseDao.findByWarehouseIdAndGoodsIdAndGoodsColorIdAndGoodsSizeId(warehouseId, goodsId, goodsColorId, goodsSizeId));
     }
 
     @GetMapping(value = "stock_list")
     public BaseJson stockList(StockVo stockVo, HttpServletRequest request) {
         UserSessionBo user = loginService.getUserSession(request);
-        Page<StockChannelPo> page = stockChannelDao.findAll((root, criteriaQuery, criteriaBuilder) -> {
+        Page<StockWarehousePo> page = stockWarehouseDao.findAll((root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-            if (StringUtils.isNotBlank(stockVo.getChannelCode())) {
-                predicates.add(criteriaBuilder.equal(root.get("channelCode"), stockVo.getChannelCode()));
+            if (StringUtils.isNotBlank(stockVo.getWarehouseCode())) {
+                predicates.add(criteriaBuilder.equal(root.get("warehouseCode"), stockVo.getWarehouseCode()));
             }
             if (StringUtils.isNotBlank(stockVo.getGoodsCode())) {
                 predicates.add(criteriaBuilder.equal(root.get("goodsCode"), stockVo.getGoodsCode()));
@@ -77,9 +77,9 @@ public class StockChannelController {
             } else {
                 predicates.add(p1);
             }
-            Predicate p2 = criteriaBuilder.isNull(root.get("channelGroupId"));
-            if (!user.getChannelGroupIds().isEmpty()) {
-                predicates.add(criteriaBuilder.or(p2, criteriaBuilder.in(root.get("channelGroupId")).value(user.getChannelGroupIds())));
+            Predicate p2 = criteriaBuilder.isNull(root.get("warehouseGroupId"));
+            if (!user.getWarehouseGroupIds().isEmpty()) {
+                predicates.add(criteriaBuilder.or(p2, criteriaBuilder.in(root.get("warehouseGroupId")).value(user.getWarehouseGroupIds())));
             } else {
                 predicates.add(p2);
             }

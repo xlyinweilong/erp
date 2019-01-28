@@ -55,4 +55,10 @@ public class StockChannelPo extends BasePo {
     @Column(name = "stock_count")
     private Integer stockCount = 0;
 
+    @Column(name = "channel_group_id")
+    private String channelGroupId;
+
+    @Column(name = "goods_group_id")
+    private String goodsGroupId;
+
 }

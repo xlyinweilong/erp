@@ -102,10 +102,12 @@ public class StockWarehouseService {
         if (stockWarehousePo == null) {
             stockWarehousePo = new StockWarehousePo();
             WarehousePo warehousePo = warehouseDao.findById(stockBo.getWarehouseId()).get();
+            stockWarehousePo.setWarehouseGroupId(warehousePo.getGroupId());
             stockWarehousePo.setWarehouseId(warehousePo.getId());
             stockWarehousePo.setWarehouseCode(warehousePo.getCode());
             stockWarehousePo.setWarehouseName(warehousePo.getName());
             GoodsPo goodsPo = goodsDao.findById(stockBo.getGoodsId()).get();
+            stockWarehousePo.setGoodsGroupId(goodsPo.getGoodsGroupId());
             stockWarehousePo.setGoodsId(goodsPo.getId());
             stockWarehousePo.setGoodsCode(goodsPo.getCode());
             stockWarehousePo.setGoodsName(goodsPo.getName());

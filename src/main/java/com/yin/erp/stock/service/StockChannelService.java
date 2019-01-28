@@ -102,10 +102,12 @@ public class StockChannelService {
         if (stockChannelPo == null) {
             stockChannelPo = new StockChannelPo();
             ChannelPo channelPo = channelDao.findById(stockBo.getChannelId()).get();
+            stockChannelPo.setChannelGroupId(channelPo.getGroupId());
             stockChannelPo.setChannelId(channelPo.getId());
             stockChannelPo.setChannelCode(channelPo.getCode());
             stockChannelPo.setChannelName(channelPo.getName());
             GoodsPo goodsPo = goodsDao.findById(stockBo.getGoodsId()).get();
+            stockChannelPo.setGoodsGroupId(goodsPo.getGoodsGroupId());
             stockChannelPo.setGoodsId(goodsPo.getId());
             stockChannelPo.setGoodsCode(goodsPo.getCode());
             stockChannelPo.setGoodsName(goodsPo.getName());
@@ -121,19 +123,6 @@ public class StockChannelService {
             stockChannelPo.setGoodsSizeName(dictSizePo.getName());
         }
         return stockChannelPo;
-    }
-
-    /**
-     * 查询库存
-     *
-     * @param channelId
-     * @param goodsId
-     * @param colorId
-     * @param sizeId
-     * @return
-     */
-    public Integer stockCount(String channelId, String goodsId, String colorId, String sizeId) {
-        return stockChannelDao.findByChannelIdAndGoodsIdAndGoodsColorIdAndGoodsSizeId(channelId, goodsId, colorId, sizeId).getStockCount();
     }
 
 }
