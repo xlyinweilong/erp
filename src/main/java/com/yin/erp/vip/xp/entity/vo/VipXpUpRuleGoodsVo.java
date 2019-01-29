@@ -1,4 +1,4 @@
-package com.yin.erp.vip.integral.entity.vo;
+package com.yin.erp.vip.xp.entity.vo;
 
 
 import com.yin.erp.base.entity.vo.in.BasePageVo;
@@ -12,13 +12,13 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class VipIntegralUpRuleGoodsVo extends BasePageVo {
+public class VipXpUpRuleGoodsVo extends BasePageVo {
 
     private String id;
 
     private String searchKey;
 
-    private String vipIntegralUpRuleId;
+    private String vipXpUpRuleId;
 
     /**
      * 对应的货品ID
