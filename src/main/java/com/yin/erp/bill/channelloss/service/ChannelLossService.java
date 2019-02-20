@@ -11,6 +11,7 @@ import com.yin.erp.bill.channelloss.dao.ChannelLossDetailDao;
 import com.yin.erp.bill.channelloss.dao.ChannelLossGoodsDao;
 import com.yin.erp.bill.channelloss.entity.po.ChannelLossPo;
 import com.yin.erp.bill.common.entity.po.BillDetailPo;
+import com.yin.erp.bill.common.entity.po.BillPo;
 import com.yin.erp.bill.common.entity.vo.BillVo;
 import com.yin.erp.bill.common.entity.vo.in.BaseAuditVo;
 import com.yin.erp.bill.common.entity.vo.in.BaseBillExportVo;
@@ -70,8 +71,8 @@ public class ChannelLossService extends BillService {
      * @throws MessageException
      */
     @Override
-    public void save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
-        billCommonService.save(new ChannelLossPo(), vo, userSessionBo, channelLossDao, channelLossGoodsDao, channelLossDetailDao, "QDDR");
+    public BillPo save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
+        return billCommonService.save(new ChannelLossPo(), vo, userSessionBo, channelLossDao, channelLossGoodsDao, channelLossDetailDao, "QDDR");
     }
 
 

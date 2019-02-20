@@ -46,6 +46,9 @@ public class Warehouse2ChannelPo extends BillPo {
     @Column(name = "channel_code")
     private String channelCode;
 
+    @Column(name = "child_bill_id")
+    private String childBillId;
+
     @Override
     public BillGoodsPo getBillGoodsInstance() {
         return new Warehouse2ChannelGoodsPo();

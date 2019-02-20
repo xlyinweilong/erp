@@ -61,7 +61,7 @@ public class Channel2SupplierController {
      * @return
      */
     @PostMapping(value = "delete")
-    public BaseJson delete(@RequestBody BaseDeleteVo vo) {
+    public BaseJson delete(@RequestBody BaseDeleteVo vo) throws MessageException{
         channel2SupplierService.delete(vo);
         return BaseJson.getSuccess("删除成功");
     }

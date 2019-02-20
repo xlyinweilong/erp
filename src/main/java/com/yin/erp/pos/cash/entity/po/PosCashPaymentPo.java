@@ -7,21 +7,29 @@ import lombok.Setter;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * 销售支付方式
  */
 @Entity
-@Table(name = "bill_cash_payment")
+@Table(name = "bill_pos_cash_payment")
 @Getter
 @Setter
-public class CashPaymentPo extends BasePo {
+public class PosCashPaymentPo extends BasePo {
 
     /**
      * 销售ID
      */
-    @Column(name = "cash_id")
-    private String cashId;
+    @Column(name = "bill_id")
+    private String billId;
+
+    /**
+     * 单据时间
+     */
+    @Column(name = "bill_date")
+    private Date billDate;
 
     /**
      * 支付方式
@@ -36,15 +44,27 @@ public class CashPaymentPo extends BasePo {
     private String paymentName;
 
     /**
+     * 支付方式sys
+     */
+    @Column(name = "sys")
+    private String sys;
+
+    /**
+     * 支付方式sysType
+     */
+    @Column(name = "sys_type")
+    private String sysType;
+
+    /**
      * 金额
      */
     @Column(name = "amount")
-    private String amount;
+    private BigDecimal amount;
 
     /**
      * 积分
      */
     @Column(name = "integral")
-    private String integral;
+    private Integer integral;
 
 }

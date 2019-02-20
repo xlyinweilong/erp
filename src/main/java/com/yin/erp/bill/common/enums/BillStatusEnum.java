@@ -7,7 +7,7 @@ package com.yin.erp.bill.common.enums;
  * @date 2018.12.03
  */
 public enum BillStatusEnum {
-    DRAFT, PENDING, AUDITED, COMPLETE, AUDIT_FAILURE;
+    DRAFT, PENDING, AUDITED, COMPLETE, QUOTE, AUDIT_FAILURE;
 
     /**
      * 单据中文意思
@@ -27,6 +27,8 @@ public enum BillStatusEnum {
                 return "审核失败";
             case COMPLETE:
                 return "完成";
+            case QUOTE:
+                return "被引用";
             default:
                 return null;
         }

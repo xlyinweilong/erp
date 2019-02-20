@@ -11,6 +11,7 @@ import com.yin.erp.bill.channel2supplier.dao.Channel2SupplierDetailDao;
 import com.yin.erp.bill.channel2supplier.dao.Channel2SupplierGoodsDao;
 import com.yin.erp.bill.channel2supplier.entity.po.Channel2SupplierPo;
 import com.yin.erp.bill.common.entity.po.BillDetailPo;
+import com.yin.erp.bill.common.entity.po.BillPo;
 import com.yin.erp.bill.common.entity.vo.BillVo;
 import com.yin.erp.bill.common.entity.vo.in.BaseAuditVo;
 import com.yin.erp.bill.common.entity.vo.in.BaseBillExportVo;
@@ -70,8 +71,8 @@ public class Channel2SupplierService extends BillService {
      * @throws MessageException
      */
     @Override
-    public void save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
-        billCommonService.save(new Channel2SupplierPo(), vo, userSessionBo, channel2SupplierDao, channel2SupplierGoodsDao, channel2SupplierDetailDao, "CGTH");
+    public BillPo save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
+        return billCommonService.save(new Channel2SupplierPo(), vo, userSessionBo, channel2SupplierDao, channel2SupplierGoodsDao, channel2SupplierDetailDao, "CGTH");
     }
 
 
@@ -80,11 +81,9 @@ public class Channel2SupplierService extends BillService {
      *
      * @param vo
      */
-    public void delete(BaseDeleteVo vo) {
+    public void delete(BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
-            channel2SupplierDetailDao.deleteAllByBillId(id);
-            channel2SupplierGoodsDao.deleteAllByBillId(id);
-            channel2SupplierDao.deleteById(id);
+            billCommonService.deleteById(id, channel2SupplierDao, channel2SupplierGoodsDao, channel2SupplierDetailDao);
         }
     }
 
@@ -97,14 +96,7 @@ public class Channel2SupplierService extends BillService {
         Date d = new Date();
         for (String id : vo.getIds()) {
             Channel2SupplierPo po = channel2SupplierDao.findById(id).get();
-            if (!po.getStatus().equals(BillStatusEnum.PENDING.name())) {
-                throw new MessageException("审核状态必须是待审核");
-            }
-            po.setAuditUserId(userSessionBo.getId());
-            po.setAuditUserName(userSessionBo.getName());
-            po.setStatus(vo.getStatus());
-            po.setAuditDate(d);
-            channel2SupplierDao.save(po);
+            billCommonService.audit(id, vo, userSessionBo, d, channel2SupplierDao, channel2SupplierGoodsDao, channel2SupplierDetailDao);
             if (vo.getStatus().equals(BillStatusEnum.AUDITED.name())) {
                 for (BillDetailPo detail : channel2SupplierDetailDao.findByBillId(id)) {
                     stockChannelService.minus(detail, po.getChannelId());
@@ -115,15 +107,14 @@ public class Channel2SupplierService extends BillService {
     }
 
     /**
-     * 反审核c
+     * 反审核
      *
      * @param vo
      */
     public void unAudit(BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
             Channel2SupplierPo po = channel2SupplierDao.findById(id).get();
-            po.setStatus("AUDIT_FAILURE");
-            channel2SupplierDao.save(po);
+            billCommonService.unAudit(id, channel2SupplierDao, channel2SupplierGoodsDao, channel2SupplierDetailDao);
             for (BillDetailPo detail : channel2SupplierDetailDao.findByBillId(id)) {
                 stockChannelService.add(detail, po.getChannelId());
             }

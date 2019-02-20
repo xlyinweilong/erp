@@ -11,13 +11,15 @@ import com.yin.erp.bill.channel2warehouse.dao.Channel2WarehouseDetailDao;
 import com.yin.erp.bill.channel2warehouse.dao.Channel2WarehouseGoodsDao;
 import com.yin.erp.bill.channel2warehouse.entity.po.Channel2WarehousePo;
 import com.yin.erp.bill.common.entity.po.BillDetailPo;
+import com.yin.erp.bill.common.entity.po.BillGoodsPo;
+import com.yin.erp.bill.common.entity.po.BillPo;
 import com.yin.erp.bill.common.entity.vo.BillVo;
-import com.yin.erp.bill.common.entity.vo.in.BaseAuditVo;
-import com.yin.erp.bill.common.entity.vo.in.BaseBillExportVo;
-import com.yin.erp.bill.common.entity.vo.in.SearchBillVo;
+import com.yin.erp.bill.common.entity.vo.in.*;
 import com.yin.erp.bill.common.enums.BillStatusEnum;
 import com.yin.erp.bill.common.service.BillCommonService;
 import com.yin.erp.bill.common.service.BillService;
+import com.yin.erp.bill.inwarehouse.service.InWarehouseService;
+import com.yin.erp.config.sysconfig.service.ConfigService;
 import com.yin.erp.stock.service.StockChannelService;
 import org.apache.poi.ss.usermodel.Row;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +29,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 仓库出货
@@ -50,6 +55,10 @@ public class Channel2WarehouseService extends BillService {
     private String erpFileTempUrl;
     @Autowired
     private BillCommonService billCommonService;
+    @Autowired
+    private ConfigService configService;
+    @Autowired
+    private InWarehouseService inWarehouseService;
 
 
     /**
@@ -71,8 +80,8 @@ public class Channel2WarehouseService extends BillService {
      * @throws MessageException
      */
     @Override
-    public void save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
-        billCommonService.save(new Channel2WarehousePo(), vo, userSessionBo, channel2WarehouseDao, channel2WarehouseGoodsDao, channel2WarehouseDetailDao, "QDTH");
+    public BillPo save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
+        return billCommonService.save(new Channel2WarehousePo(), vo, userSessionBo, channel2WarehouseDao, channel2WarehouseGoodsDao, channel2WarehouseDetailDao, "QDTH");
     }
 
 
@@ -81,11 +90,9 @@ public class Channel2WarehouseService extends BillService {
      *
      * @param vo
      */
-    public void delete(BaseDeleteVo vo) {
+    public void delete(BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
-            channel2WarehouseDetailDao.deleteAllByBillId(id);
-            channel2WarehouseGoodsDao.deleteAllByBillId(id);
-            channel2WarehouseDao.deleteById(id);
+            billCommonService.deleteById(id, channel2WarehouseDao, channel2WarehouseGoodsDao, channel2WarehouseDetailDao);
         }
     }
 
@@ -98,14 +105,51 @@ public class Channel2WarehouseService extends BillService {
         Date d = new Date();
         for (String id : vo.getIds()) {
             Channel2WarehousePo po = channel2WarehouseDao.findById(id).get();
-            po.setAuditUserId(userSessionBo.getId());
-            po.setAuditUserName(userSessionBo.getName());
-            po.setStatus(vo.getStatus());
-            po.setAuditDate(d);
-            channel2WarehouseDao.save(po);
+            billCommonService.audit(id, vo, userSessionBo, d, channel2WarehouseDao, channel2WarehouseGoodsDao, channel2WarehouseDetailDao);
             if (vo.getStatus().equals(BillStatusEnum.AUDITED.name())) {
                 for (BillDetailPo detail : channel2WarehouseDetailDao.findByBillId(id)) {
                     stockChannelService.minus(detail, po.getChannelId());
+                }
+                //自动生成调入
+                if (configService.getWarehouseConfigValue("channel_qdth_auto_cksh", po.getWarehouseId()) == 0) {
+                    BillVo billVo = new BillVo();
+                    billVo.setStatus(BillStatusEnum.PENDING.name());
+                    billVo.setBillDate(po.getBillDate());
+                    billVo.setParentBillCode(po.getCode());
+                    billVo.setParentBillId(po.getId());
+                    billVo.setChannelName(po.getChannelName());
+                    billVo.setChannelCode(po.getChannelCode());
+                    billVo.setChannelId(po.getChannelId());
+                    billVo.setWarehouseName(po.getWarehouseName());
+                    billVo.setWarehouseId(po.getWarehouseId());
+                    billVo.setWarehouseCode(po.getWarehouseCode());
+                    List<BillGoodsVo> billGoodsVoList = new ArrayList<>();
+                    List<BillGoodsPo> goodsListPo = channel2WarehouseGoodsDao.findByBillId(po.getId());
+                    List<BillDetailPo> detailListPo = channel2WarehouseDetailDao.findByBillId(po.getId());
+                    for (BillGoodsPo billGoodsPo : goodsListPo) {
+                        BillGoodsVo billGoodsVo = new BillGoodsVo();
+                        billGoodsVo.setGoodsCode(billGoodsPo.getGoodsCode());
+                        billGoodsVo.setTagPrice(billGoodsPo.getTagPrice());
+                        billGoodsVo.setPrice(billGoodsPo.getPrice());
+                        billGoodsVo.setGoodsName(billGoodsPo.getGoodsName());
+                        billGoodsVo.setGoodsId(billGoodsPo.getGoodsId());
+                        List<BillDetailVo> billDetailVoList = new ArrayList<>();
+                        detailListPo.stream().filter(dp -> dp.getGoodsId().equals(billGoodsPo.getGoodsId())).forEach(dp -> {
+                            BillDetailVo billDetailVo = new BillDetailVo();
+                            billDetailVo.setBillCount(dp.getBillCount());
+                            billDetailVo.setSizeId(dp.getGoodsSizeId());
+                            billDetailVo.setColorId(dp.getGoodsColorId());
+                            billDetailVoList.add(billDetailVo);
+                        });
+                        billGoodsVo.setDetail(billDetailVoList);
+                        billGoodsVoList.add(billGoodsVo);
+                    }
+                    billVo.setGoodsList(billGoodsVoList);
+                    BillPo billPo = inWarehouseService.save(billVo, userSessionBo);
+                    BaseAuditVo baseAuditVo = new BaseAuditVo();
+                    baseAuditVo.setIds(Arrays.asList(billPo.getId()));
+                    baseAuditVo.setStatus(BillStatusEnum.AUDITED.name());
+                    inWarehouseService.audit(baseAuditVo, userSessionBo);
                 }
             }
         }
@@ -120,8 +164,7 @@ public class Channel2WarehouseService extends BillService {
     public void unAudit(BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
             Channel2WarehousePo po = channel2WarehouseDao.findById(id).get();
-            po.setStatus("AUDIT_FAILURE");
-            channel2WarehouseDao.save(po);
+            billCommonService.unAudit(id, channel2WarehouseDao, channel2WarehouseGoodsDao, channel2WarehouseDetailDao);
             for (BillDetailPo detail : channel2WarehouseDetailDao.findByBillId(id)) {
                 stockChannelService.add(detail, po.getChannelId());
             }

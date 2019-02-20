@@ -1,4 +1,4 @@
-package com.yin.erp.vip.xp.entity.po;
+package com.yin.erp.vip.integral.entity.po;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.yin.erp.base.entity.po.BasePo;
@@ -16,10 +16,10 @@ import java.util.Date;
  * @author yin
  */
 @Entity
-@Table(name = "vip_xp_up_rule")
+@Table(name = "vip_integral_up_rule")
 @Getter
 @Setter
-public class VipXpUpRulePo extends BasePo {
+public class VipIntegralRulePo extends BasePo {
 
     /**
      * 生效时间
@@ -50,8 +50,8 @@ public class VipXpUpRulePo extends BasePo {
     /**
      * 增加的积分数量
      */
-    @Column(name = "xp")
-    private Integer xp = 0;
+    @Column(name = "integral")
+    private Integer integral = 0;
 
     /**
      * 优先级别

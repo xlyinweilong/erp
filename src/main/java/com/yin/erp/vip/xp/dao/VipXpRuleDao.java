@@ -1,7 +1,7 @@
 package com.yin.erp.vip.xp.dao;
 
 
-import com.yin.erp.vip.xp.entity.po.VipXpUpRulePo;
+import com.yin.erp.vip.xp.entity.po.VipXpRulePo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
@@ -12,6 +12,6 @@ import org.springframework.stereotype.Repository;
  * @author yin
  */
 @Repository
-public interface VipXpUpRuleDao extends JpaRepository<VipXpUpRulePo, String>, JpaSpecificationExecutor {
+public interface VipXpRuleDao extends JpaRepository<VipXpRulePo, String>, JpaSpecificationExecutor {
 
 }

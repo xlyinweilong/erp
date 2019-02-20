@@ -1,6 +1,5 @@
 package com.yin.erp.bill.common.service;
 
-import com.yin.erp.base.entity.po.BasePo;
 import com.yin.erp.base.entity.vo.out.BackPageVo;
 import com.yin.erp.base.entity.vo.out.BaseUploadMessage;
 import com.yin.erp.base.exceptions.MessageException;
@@ -16,10 +15,7 @@ import com.yin.erp.bill.common.entity.po.BillDetailPo;
 import com.yin.erp.bill.common.entity.po.BillGoodsPo;
 import com.yin.erp.bill.common.entity.po.BillPo;
 import com.yin.erp.bill.common.entity.vo.BillVo;
-import com.yin.erp.bill.common.entity.vo.in.BaseBillExportVo;
-import com.yin.erp.bill.common.entity.vo.in.BillDetailVo;
-import com.yin.erp.bill.common.entity.vo.in.BillGoodsVo;
-import com.yin.erp.bill.common.entity.vo.in.SearchBillVo;
+import com.yin.erp.bill.common.entity.vo.in.*;
 import com.yin.erp.info.channel.dao.ChannelDao;
 import com.yin.erp.info.channel.entity.po.ChannelPo;
 import com.yin.erp.info.dict.dao.DictDao;
@@ -115,6 +111,9 @@ public class BillCommonService {
             if (StringUtils.isNoneBlank(vo.getChannelCode())) {
                 predicates.add(criteriaBuilder.like(root.get("channelCode"), "%" + vo.getChannelCode() + "%"));
             }
+            if (StringUtils.isNoneBlank(vo.getToChannelCode())) {
+                predicates.add(criteriaBuilder.like(root.get("toChannelCode"), "%" + vo.getToChannelCode() + "%"));
+            }
             if (StringUtils.isNoneBlank(vo.getWarehouseCode())) {
                 predicates.add(criteriaBuilder.like(root.get("warehouseCode"), "%" + vo.getWarehouseCode() + "%"));
             }
@@ -174,8 +173,8 @@ public class BillCommonService {
      * @param billPrefixKey
      * @throws MessageException
      */
-    public void save(BillPo dbPo, BillVo vo, UserSessionBo userSessionBo, BaseBillDao billDao, BaseBillGoodsDao billGoodsDao, BaseBillDetailDao billDetailDao, String billPrefixKey) throws MessageException {
-        this.save(dbPo, vo, userSessionBo, billDao, billGoodsDao, billDetailDao, billPrefixKey, null);
+    public BillPo save(BillPo dbPo, BillVo vo, UserSessionBo userSessionBo, BaseBillDao billDao, BaseBillGoodsDao billGoodsDao, BaseBillDetailDao billDetailDao, String billPrefixKey) throws MessageException {
+        return this.save(dbPo, vo, userSessionBo, billDao, billGoodsDao, billDetailDao, billPrefixKey, null);
     }
 
     /**
@@ -191,7 +190,7 @@ public class BillCommonService {
      * @param parentBillGoods
      * @throws MessageException
      */
-    public void save(BillPo dbPo, BillVo vo, UserSessionBo userSessionBo, BaseBillDao billDao, BaseBillGoodsDao billGoodsDao, BaseBillDetailDao billDetailDao, String billPrefixKey, List<BillGoodsVo> parentBillGoods) throws MessageException {
+    public BillPo save(BillPo dbPo, BillVo vo, UserSessionBo userSessionBo, BaseBillDao billDao, BaseBillGoodsDao billGoodsDao, BaseBillDetailDao billDetailDao, String billPrefixKey, List<BillGoodsVo> parentBillGoods) throws MessageException {
         CopyUtil.copyProperties(dbPo, vo);
         if (StringUtils.isBlank(dbPo.getId())) {
             dbPo.setId(GenerateUtil.createUUID());
@@ -199,7 +198,12 @@ public class BillCommonService {
             dbPo.setCreateUserId(userSessionBo.getId());
             dbPo.setCreateUserName(userSessionBo.getName());
         } else {
-            dbPo.setVersion(((BasePo) billDao.findById(dbPo.getId()).get()).getVersion());
+            //判断状态
+            BillPo oldPo = (BillPo) billDao.findById(dbPo.getId()).get();
+            if (oldPo.getStatus().equals("AUDITED") || oldPo.getStatus().equals("COMPLETE") || oldPo.getStatus().equals("QUOTE")) {
+                throw new MessageException("单据状态错误，请退回到列表刷新后重试");
+            }
+            dbPo.setVersion(oldPo.getVersion());
             //删除
             billDetailDao.deleteAllByBillId(dbPo.getId());
             billGoodsDao.deleteAllByBillId(dbPo.getId());
@@ -288,6 +292,68 @@ public class BillCommonService {
         billDetailDao.saveAll(detailList);
         billGoodsDao.saveAll(goodsList);
         billDao.saveAndFlush(dbPo);
+        return dbPo;
+    }
+
+    /**
+     * 删除
+     *
+     * @param id
+     * @param billDao
+     * @param billGoodsDao
+     * @param billDetailDao
+     * @throws MessageException
+     */
+    public void deleteById(String id, BaseBillDao billDao, BaseBillGoodsDao billGoodsDao, BaseBillDetailDao billDetailDao) throws MessageException {
+        BillPo oldPo = (BillPo) billDao.findById(id).get();
+        if (oldPo.getStatus().equals("AUDITED") || oldPo.getStatus().equals("COMPLETE") || oldPo.getStatus().equals("QUOTE") || oldPo.getStatus().equals("PENDING")) {
+            throw new MessageException("单据状态错误，请刷新后重试");
+        }
+        billDetailDao.deleteAllByBillId(id);
+        billGoodsDao.deleteAllByBillId(id);
+        billDao.deleteById(id);
+    }
+
+    /**
+     * 审核
+     *
+     * @param id
+     * @param vo
+     * @param userSessionBo
+     * @param d
+     * @param billDao
+     * @param billGoodsDao
+     * @param billDetailDao
+     * @throws MessageException
+     */
+    public void audit(String id, BaseAuditVo vo, UserSessionBo userSessionBo, Date d, BaseBillDao billDao, BaseBillGoodsDao billGoodsDao, BaseBillDetailDao billDetailDao) throws MessageException {
+        BillPo po = (BillPo) billDao.findById(id).get();
+        if (!po.getStatus().equals("PENDING")) {
+            throw new MessageException("单据状态错误，请刷新后重试");
+        }
+        po.setAuditUserId(userSessionBo.getId());
+        po.setAuditUserName(userSessionBo.getName());
+        po.setStatus(vo.getStatus());
+        po.setAuditDate(d);
+        billDao.save(po);
+    }
+
+    /**
+     * 反审核
+     *
+     * @param id
+     * @param billDao
+     * @param billGoodsDao
+     * @param billDetailDao
+     * @throws MessageException
+     */
+    public void unAudit(String id, BaseBillDao billDao, BaseBillGoodsDao billGoodsDao, BaseBillDetailDao billDetailDao) throws MessageException {
+        BillPo po = (BillPo) billDao.findById(id).get();
+        if (!po.getStatus().equals("AUDITED")) {
+            throw new MessageException("单据状态错误，请刷新后重试");
+        }
+        po.setStatus("AUDIT_FAILURE");
+        billDao.save(po);
     }
 
 
@@ -463,6 +529,9 @@ public class BillCommonService {
                         ExcelReadUtil.addErrorToRow(row, errorCellNum, "货号、颜色、内长、尺码在文件中已经存在");
                         success = false;
                     }
+                    if (price == null) {
+                        price = goodsPo.getTagPrice1();
+                    }
                     if (price.compareTo(BigDecimal.ZERO) < 0) {
                         ExcelReadUtil.addErrorToRow(row, errorCellNum, "单价不能小于0");
                         success = false;
@@ -487,7 +556,7 @@ public class BillCommonService {
                         billGoodsVo.setGoodsId(goodsPo.getId());
                         billGoodsVo.setGoodsName(goodsPo.getName());
                         billGoodsVo.setPrice(price);
-                        billGoodsVo.setTagPrice(price);
+                        billGoodsVo.setTagPrice(goodsPo.getTagPrice1());
                         billGoodsList.add(billGoodsVo);
                         detailList = new ArrayList<>();
                         billGoodsVo.setDetail(detailList);

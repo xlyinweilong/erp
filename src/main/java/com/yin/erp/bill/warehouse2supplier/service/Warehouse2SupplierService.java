@@ -7,6 +7,7 @@ import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
 import com.yin.erp.base.utils.ExcelReadUtil;
 import com.yin.erp.bill.common.entity.po.BillDetailPo;
+import com.yin.erp.bill.common.entity.po.BillPo;
 import com.yin.erp.bill.common.entity.vo.BillVo;
 import com.yin.erp.bill.common.entity.vo.in.BaseAuditVo;
 import com.yin.erp.bill.common.entity.vo.in.BaseBillExportVo;
@@ -71,8 +72,8 @@ public class Warehouse2SupplierService extends BillService {
      * @throws MessageException
      */
     @Override
-    public void save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
-        billCommonService.save(new Warehouse2SupplierPo(), vo, userSessionBo, warehouse2SupplierDao, warehouse2SupplierGoodsDao, warehouse2SupplierDetailDao, "CKTH");
+    public BillPo save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
+        return billCommonService.save(new Warehouse2SupplierPo(), vo, userSessionBo, warehouse2SupplierDao, warehouse2SupplierGoodsDao, warehouse2SupplierDetailDao, "CKTH");
     }
 
 
@@ -81,11 +82,9 @@ public class Warehouse2SupplierService extends BillService {
      *
      * @param vo
      */
-    public void delete(BaseDeleteVo vo) {
+    public void delete(BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
-            warehouse2SupplierDetailDao.deleteAllByBillId(id);
-            warehouse2SupplierGoodsDao.deleteAllByBillId(id);
-            warehouse2SupplierDao.deleteById(id);
+            billCommonService.deleteById(id, warehouse2SupplierDao, warehouse2SupplierGoodsDao, warehouse2SupplierDetailDao);
         }
     }
 
@@ -98,14 +97,10 @@ public class Warehouse2SupplierService extends BillService {
         Date d = new Date();
         for (String id : vo.getIds()) {
             Warehouse2SupplierPo po = warehouse2SupplierDao.findById(id).get();
-            po.setAuditUserId(userSessionBo.getId());
-            po.setAuditUserName(userSessionBo.getName());
-            po.setStatus(vo.getStatus());
-            po.setAuditDate(d);
-            warehouse2SupplierDao.save(po);
+            billCommonService.audit(id, vo, userSessionBo, d, warehouse2SupplierDao, warehouse2SupplierGoodsDao, warehouse2SupplierDetailDao);
             if (vo.getStatus().equals(BillStatusEnum.AUDITED.name())) {
                 for (BillDetailPo detail : warehouse2SupplierDetailDao.findByBillId(id)) {
-                    stockWarehouseService.add(detail, po.getWarehouseId());
+                    stockWarehouseService.minus(detail, po.getWarehouseId());
                 }
             }
         }
@@ -120,10 +115,9 @@ public class Warehouse2SupplierService extends BillService {
     public void unAudit(BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
             Warehouse2SupplierPo po = warehouse2SupplierDao.findById(id).get();
-            po.setStatus("AUDIT_FAILURE");
-            warehouse2SupplierDao.save(po);
+            billCommonService.unAudit(id, warehouse2SupplierDao, warehouse2SupplierGoodsDao, warehouse2SupplierDetailDao);
             for (BillDetailPo detail : warehouse2SupplierDetailDao.findByBillId(id)) {
-                stockWarehouseService.minus(detail, po.getWarehouseId());
+                stockWarehouseService.add(detail, po.getWarehouseId());
             }
         }
     }

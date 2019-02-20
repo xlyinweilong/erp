@@ -45,6 +45,7 @@ public class VipGradeController {
             po = vipGradeDao.findById(vo.getId()).get();
         }
         po.setName(vo.getName());
+        po.setDiscount(vo.getDiscount());
         po.setIndexDepth(vo.getIndexDepth());
         vipGradeDao.save(po);
         return BaseJson.getSuccess();

@@ -61,7 +61,7 @@ public class Warehouse2SupplierController {
      * @return
      */
     @PostMapping(value = "delete")
-    public BaseJson delete(@RequestBody BaseDeleteVo vo) {
+    public BaseJson delete(@RequestBody BaseDeleteVo vo) throws MessageException {
         warehouse2SupplierService.delete(vo);
         return BaseJson.getSuccess("删除成功");
     }

@@ -6,11 +6,8 @@ import com.yin.erp.base.entity.vo.out.BackPageVo;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
 import com.yin.erp.base.utils.ExcelReadUtil;
-import com.yin.erp.bill.warehouseinventory.dao.WarehouseInventoryDao;
-import com.yin.erp.bill.warehouseinventory.dao.WarehouseInventoryDetailDao;
-import com.yin.erp.bill.warehouseinventory.dao.WarehouseInventoryGoodsDao;
-import com.yin.erp.bill.warehouseinventory.entity.po.WarehouseInventoryPo;
 import com.yin.erp.bill.common.entity.po.BillDetailPo;
+import com.yin.erp.bill.common.entity.po.BillPo;
 import com.yin.erp.bill.common.entity.vo.BillVo;
 import com.yin.erp.bill.common.entity.vo.in.BaseAuditVo;
 import com.yin.erp.bill.common.entity.vo.in.BaseBillExportVo;
@@ -18,6 +15,10 @@ import com.yin.erp.bill.common.entity.vo.in.SearchBillVo;
 import com.yin.erp.bill.common.enums.BillStatusEnum;
 import com.yin.erp.bill.common.service.BillCommonService;
 import com.yin.erp.bill.common.service.BillService;
+import com.yin.erp.bill.warehouseinventory.dao.WarehouseInventoryDao;
+import com.yin.erp.bill.warehouseinventory.dao.WarehouseInventoryDetailDao;
+import com.yin.erp.bill.warehouseinventory.dao.WarehouseInventoryGoodsDao;
+import com.yin.erp.bill.warehouseinventory.entity.po.WarehouseInventoryPo;
 import com.yin.erp.stock.service.StockWarehouseService;
 import org.apache.poi.ss.usermodel.Row;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,8 +71,8 @@ public class WarehouseInventoryService extends BillService {
      * @throws MessageException
      */
     @Override
-    public void save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
-        billCommonService.save(new WarehouseInventoryPo(), vo, userSessionBo, warehouseInventoryDao, warehouseInventoryGoodsDao, warehouseInventoryDetailDao, "CKSY");
+    public BillPo save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
+        return billCommonService.save(new WarehouseInventoryPo(), vo, userSessionBo, warehouseInventoryDao, warehouseInventoryGoodsDao, warehouseInventoryDetailDao, "CKSY");
     }
 
 

@@ -2,7 +2,6 @@ package com.yin.erp.activity.entity.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.yin.erp.activity.entity.po.*;
-import com.yin.erp.base.entity.vo.BaseVo;
 import com.yin.erp.base.entity.vo.in.BasePageVo;
 import lombok.Getter;
 import lombok.Setter;
@@ -66,4 +65,8 @@ public class ActivityVo extends BasePageVo {
     private List<ActivityConditionGoodsPo> activityConditionGoodsList;
 
     private List<ActivityRulePo> activityRuleList;
+
+    private List<ActivityRuleGoodsPo> activityRuleGoodsList;
+
+    private List<ActivityRuleRangePo> activityRuleRangeList;
 }

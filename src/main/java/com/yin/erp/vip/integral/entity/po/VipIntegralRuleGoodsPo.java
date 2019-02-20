@@ -17,7 +17,7 @@ import javax.persistence.Table;
 @Table(name = "vip_integral_up_rule_goods")
 @Getter
 @Setter
-public class VipIntegralUpRuleGoodsPo extends BasePo {
+public class VipIntegralRuleGoodsPo extends BasePo {
 
     /**
      * 规则ID

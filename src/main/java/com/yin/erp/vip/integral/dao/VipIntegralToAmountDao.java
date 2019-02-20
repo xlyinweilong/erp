@@ -14,4 +14,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface VipIntegralToAmountDao extends JpaRepository<VipIntegralToAmountPo, String>, JpaSpecificationExecutor {
 
+    /**
+     * 查询等级的换算规则
+     *
+     * @param gradeId
+     * @return
+     */
+    VipIntegralToAmountPo findByGradeId(String gradeId);
+
 }

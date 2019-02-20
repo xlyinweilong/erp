@@ -1,0 +1,90 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta content="text/html;charset=UTF-8"/>
+    <style media="print">
+        @page {
+            margin: 0mm 1mm 0mm 1mm;
+            size: portrait;
+        }
+    </style>
+    <style type="text/css">  
+      table {
+            font-size: 20px;
+            border-collapse: collapse;
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        .al {
+            width: 58mm;
+            margin-left: 1px;
+            margin-right: 1px;
+        }
+
+        body {
+            text-align: center;
+            margin: 1px;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body class="al">
+<div style="margin:0 auto;border:0px solid #000;width:58mm">
+    <h2 th:text="${pos.channelName}"></h2>
+    <p style="text-align: left;margin-top: 0px;margin-bottom: 0px;" th:text="'单号:' + ${pos.code}"></p>
+    <hr style="margin-top: 1px;margin-bottom: 1px;"/>
+    <table style="width:100%">
+        <thead>
+        <tr>
+            <th>货号</th>
+            <th>颜色</th>
+            <th>尺码</th>
+            <th>数量</th>
+            <th>单价</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="goods : ${goodsList}">
+            <td th:text="${goods.goodsCode}"></td>
+            <td th:text="${goods.goodsColorName}"></td>
+            <td th:text="${goods.goodsSizeName}"></td>
+            <td th:text="${goods.billCount}"></td>
+            <td th:text="${goods.price}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <hr style="margin-top:1px;margin-bottom:1px;"/>
+    <table style="width:100%">
+        <thead>
+        <tr>
+            <th>小计</th>
+            <th th:text="${totalGoodsCount}"></th>
+            <th th:text="${totalGoodsAmount} + '元'"></th>
+        </tr>
+        </thead>
+    </table>
+    <hr style="margin-top: 1px;margin-bottom: 1px;"/>
+    <!--<h2>支付方式</h2>-->
+    <table style="width:100%">
+        <thead>
+        <tr>
+            <th>支付方式</th>
+            <th>金额</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="payment : ${paymentList}">
+            <td th:text="${payment.paymentName}"></td>
+            <td th:text="${payment.amount}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <hr style="margin-top: 1px;margin-bottom: 1px;"/>
+    <div style="text-align: left;margin-top: 0px;margin-bottom: 0px;" th:if="${pos.vipId != null}">
+        会员：<b th:text="${pos.vipCode}"></b><br/>
+        本次获得积分：<b th:text="${totalGetIntegral}"></b>
+    </div>
+</div>
+</body>
+</html>

@@ -2,6 +2,8 @@ package com.yin.erp.stock.service;
 
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.bill.common.entity.po.BillDetailPo;
+import com.yin.erp.config.sysconfig.service.ConfigService;
+import com.yin.erp.info.dict.dao.DictDao;
 import com.yin.erp.info.dict.dao.DictSizeDao;
 import com.yin.erp.info.dict.entity.po.DictSizePo;
 import com.yin.erp.info.goods.dao.GoodsColorDao;
@@ -39,6 +41,10 @@ public class StockWarehouseService {
     private GoodsColorDao goodsColorDao;
     @Autowired
     private DictSizeDao dictSizeDao;
+    @Autowired
+    private DictDao dictDao;
+    @Autowired
+    private ConfigService configService;
 
     /**
      * 增加库存
@@ -70,7 +76,11 @@ public class StockWarehouseService {
         }
         StockWarehousePo stockWarehousePo = this.getStockWarehousePo(stockBo);
         stockWarehousePo.setStockCount(stockWarehousePo.getStockCount() + stockBo.getStockCount());
-        //TODO 负库存
+        if (stockWarehousePo.getStockCount() < 0 && stockBo.getStockCount() < 0 && configService.getSysConfigValue("system_warehouse_stock_bufu") == 0) {
+            //负库存
+            //查询货号、颜色、尺码
+            throw new MessageException("库存不能为负数,货号：" + goodsDao.findById(stockBo.getGoodsId()).get().getCode() + ",颜色：" + dictDao.findById(stockBo.getGoodsColorId()).get().getName() + ",尺码：" + dictSizeDao.findById(stockBo.getGoodsSizeId()).get().getName());
+        }
         stockWarehouseDao.save(stockWarehousePo);
     }
 
@@ -86,7 +96,11 @@ public class StockWarehouseService {
         }
         StockWarehousePo stockWarehousePo = this.getStockWarehousePo(stockBo);
         stockWarehousePo.setStockCount(stockWarehousePo.getStockCount() - stockBo.getStockCount());
-        //TODO 负库存
+        if (stockWarehousePo.getStockCount() < 0 && stockBo.getStockCount() > 0 && configService.getSysConfigValue("system_warehouse_stock_bufu") == 0) {
+            //负库存
+            //查询货号、颜色、尺码
+            throw new MessageException("库存不能为负数,货号：" + goodsDao.findById(stockBo.getGoodsId()).get().getCode() + ",颜色：" + dictDao.findById(stockBo.getGoodsColorId()).get().getName() + ",尺码：" + dictSizeDao.findById(stockBo.getGoodsSizeId()).get().getName());
+        }
         stockWarehouseDao.save(stockWarehousePo);
     }
 

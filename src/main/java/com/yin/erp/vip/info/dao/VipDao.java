@@ -14,4 +14,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface VipDao extends JpaRepository<VipPo, String>, JpaSpecificationExecutor {
 
+    /**
+     * 根据编号查询
+     *
+     * @param code
+     * @return
+     */
+    VipPo findByCode(String code);
 }

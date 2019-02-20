@@ -1,7 +1,7 @@
 package com.yin.erp.vip.integral.dao;
 
 
-import com.yin.erp.vip.integral.entity.po.VipIntegralUpRulePo;
+import com.yin.erp.vip.integral.entity.po.VipIntegralRulePo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
  * @author yin
  */
 @Repository
-public interface VipIntegralUpRuleDao extends JpaRepository<VipIntegralUpRulePo, String>, JpaSpecificationExecutor {
+public interface VipIntegralRuleDao extends JpaRepository<VipIntegralRulePo, String>, JpaSpecificationExecutor {
+
 
 }

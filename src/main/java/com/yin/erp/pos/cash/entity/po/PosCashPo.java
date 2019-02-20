@@ -6,17 +6,16 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.Date;
 
 /**
  * 销售
  */
 @Entity
-@Table(name = "bill_cash")
+@Table(name = "bill_pos_cash")
 @Getter
 @Setter
-public class CashPo extends BasePo {
+public class PosCashPo extends BasePo {
 
     /**
      * 单号
@@ -28,8 +27,13 @@ public class CashPo extends BasePo {
      * 单据时间
      */
     @Column(name = "bill_date")
-    private LocalDate billDate;
+    private Date billDate;
 
+    /**
+     * 状态
+     */
+    @Column(name = "status")
+    private String status;
 
     /**
      * 渠道ID
@@ -97,6 +101,24 @@ public class CashPo extends BasePo {
     @Column(name = "audit_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date auditDate;
+
+    /**
+     * 会员ID
+     */
+    @Column(name = "vip_id")
+    private String vipId;
+
+    /**
+     * 会员编号
+     */
+    @Column(name = "vip_code")
+    private String vipCode;
+
+    /**
+     * 会员名称
+     */
+    @Column(name = "vip_name")
+    private String vipName;
 
 
 }

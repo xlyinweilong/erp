@@ -15,5 +15,6 @@ import javax.annotation.Resource;
 @Resource
 public interface Warehouse2ChannelDao extends BaseBillDao<Warehouse2ChannelPo, String> {
 
+    @Override
     Warehouse2ChannelPo findByCode(String code);
 }

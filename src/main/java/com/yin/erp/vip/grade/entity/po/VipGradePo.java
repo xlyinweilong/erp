@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 
 /**
  * 会员等级
@@ -40,6 +41,13 @@ public class VipGradePo extends BasePo {
      */
     @Column(name = "lowest_xp_value")
     private Integer lowestXpValue;
+
+    /**
+     * 折扣
+     */
+    @Column(name = "discount")
+    private BigDecimal discount;
+
 
 
 }

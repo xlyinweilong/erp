@@ -4,6 +4,7 @@ import com.yin.erp.base.entity.vo.out.BackPageVo;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
 import com.yin.erp.base.utils.ExcelReadUtil;
+import com.yin.erp.bill.common.entity.po.BillPo;
 import com.yin.erp.bill.common.entity.vo.BillVo;
 import com.yin.erp.bill.common.entity.vo.in.SearchBillVo;
 import org.apache.poi.ss.usermodel.Row;
@@ -23,7 +24,8 @@ public class BillService implements BillServiceInterface {
     }
 
     @Override
-    public void save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
+    public BillPo save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
+        return null;
     }
 
     public String uploadBillParentBillCode(Row row) throws MessageException {

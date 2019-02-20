@@ -9,6 +9,7 @@ import com.yin.erp.base.utils.CopyUtil;
 import com.yin.erp.base.utils.ExcelReadUtil;
 import com.yin.erp.bill.common.entity.po.BillDetailPo;
 import com.yin.erp.bill.common.entity.po.BillGoodsPo;
+import com.yin.erp.bill.common.entity.po.BillPo;
 import com.yin.erp.bill.common.entity.vo.BillVo;
 import com.yin.erp.bill.common.entity.vo.in.*;
 import com.yin.erp.bill.common.enums.BillStatusEnum;
@@ -90,8 +91,22 @@ public class InChannelService extends BillService {
      * @throws MessageException
      */
     @Override
-    public void save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
-        billCommonService.save(new InChannelPo(), vo, userSessionBo, inChannelDao, inChannelGoodsDao, inChannelDetailDao, "QDSH", this.findParentGoodsList(vo.getParentBillId()));
+    public BillPo save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
+        //如果是修改，删除原来的上游引用
+        if (StringUtils.isNotBlank(vo.getId())) {
+            //查询上游单据
+            Warehouse2ChannelPo oldParent = warehouse2ChannelDao.findById(inChannelDao.findById(vo.getId()).get().getParentBillId()).get();
+            oldParent.setChildBillId(null);
+            oldParent.setStatus("AUDITED");
+            warehouse2ChannelDao.save(oldParent);
+        }
+        BillPo billPo = billCommonService.save(new InChannelPo(), vo, userSessionBo, inChannelDao, inChannelGoodsDao, inChannelDetailDao, "QDSH", this.findParentGoodsList(vo.getParentBillId()));
+        //查询上游单据
+        Warehouse2ChannelPo newParent = warehouse2ChannelDao.findById(vo.getParentBillId()).get();
+        newParent.setChildBillId(billPo.getId());
+        newParent.setStatus("QUOTE");
+        warehouse2ChannelDao.save(newParent);
+        return billPo;
     }
 
 
@@ -100,11 +115,14 @@ public class InChannelService extends BillService {
      *
      * @param vo
      */
-    public void delete(BaseDeleteVo vo) {
+    public void delete(BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
-            inChannelDetailDao.deleteAllByBillId(id);
-            inChannelGoodsDao.deleteAllByBillId(id);
-            inChannelDao.deleteById(id);
+            //删除上游引用
+            Warehouse2ChannelPo oldParent = warehouse2ChannelDao.findById(inChannelDao.findById(id).get().getParentBillId()).get();
+            oldParent.setChildBillId(null);
+            oldParent.setStatus("AUDITED");
+            warehouse2ChannelDao.save(oldParent);
+            billCommonService.deleteById(id, inChannelDao, inChannelGoodsDao, inChannelDetailDao);
         }
     }
 
@@ -117,16 +135,16 @@ public class InChannelService extends BillService {
         Date d = new Date();
         for (String id : vo.getIds()) {
             InChannelPo po = inChannelDao.findById(id).get();
-            po.setAuditUserId(userSessionBo.getId());
-            po.setAuditUserName(userSessionBo.getName());
-            po.setStatus(vo.getStatus());
-            po.setAuditDate(d);
-            inChannelDao.save(po);
+            billCommonService.audit(id, vo, userSessionBo, d, inChannelDao, inChannelGoodsDao, inChannelDetailDao);
             if (vo.getStatus().equals(BillStatusEnum.AUDITED.name())) {
                 for (BillDetailPo detail : inChannelDetailDao.findByBillId(id)) {
                     stockChannelService.add(detail, po.getChannelId());
                     //修改上游单据数量 TODO
                 }
+                //修改上游单据状态
+                Warehouse2ChannelPo parent = warehouse2ChannelDao.findById(po.getParentBillId()).get();
+                parent.setStatus("COMPLETE");
+                warehouse2ChannelDao.save(parent);
             }
         }
         inChannelDao.flush();
@@ -140,12 +158,15 @@ public class InChannelService extends BillService {
     public void unAudit(BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
             InChannelPo po = inChannelDao.findById(id).get();
-            po.setStatus("AUDIT_FAILURE");
-            inChannelDao.save(po);
+            billCommonService.unAudit(id, inChannelDao, inChannelGoodsDao, inChannelDetailDao);
             for (BillDetailPo detail : inChannelDetailDao.findByBillId(id)) {
                 stockChannelService.minus(detail, po.getChannelId());
                 //修改上游单据数量 TODO
             }
+            //修改上游单据状态
+            Warehouse2ChannelPo parent = warehouse2ChannelDao.findById(po.getParentBillId()).get();
+            parent.setStatus("QUOTE");
+            warehouse2ChannelDao.save(parent);
         }
     }
 
@@ -224,9 +245,11 @@ public class InChannelService extends BillService {
      * @return
      */
     public Page<Warehouse2ChannelPo> findParentBill(String code) {
-        //TODO 只查询未完成的单据
+        //查询未被引用的单据
         Page<Warehouse2ChannelPo> page = warehouse2ChannelDao.findAll((root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
+            predicates.add(criteriaBuilder.isNull(root.get("childBillId")));
+            predicates.add(criteriaBuilder.equal(root.get("status"), "AUDITED"));
             if (StringUtils.isNotBlank(code)) {
                 predicates.add(criteriaBuilder.like(root.get("code"), "%" + code + "%"));
             }

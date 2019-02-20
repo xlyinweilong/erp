@@ -2,6 +2,7 @@ package com.yin.erp.bill.common.service;
 
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
+import com.yin.erp.bill.common.entity.po.BillPo;
 import com.yin.erp.bill.common.entity.vo.BillVo;
 
 /**
@@ -19,7 +20,7 @@ public interface BillServiceInterface {
      * @param userSessionBo
      * @throws MessageException
      */
-    void save(BillVo vo, UserSessionBo userSessionBo) throws MessageException;
+    BillPo save(BillVo vo, UserSessionBo userSessionBo) throws MessageException;
 
 
 }

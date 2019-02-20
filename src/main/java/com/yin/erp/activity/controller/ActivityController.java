@@ -13,7 +13,6 @@ import com.yin.erp.info.dict.dao.DictDao;
 import com.yin.erp.info.dict.entity.po.DictPo;
 import com.yin.erp.info.goods.dao.GoodsDao;
 import com.yin.erp.info.goods.entity.po.GoodsPo;
-import com.yin.erp.vip.integral.entity.po.VipIntegralUpRuleGoodsPo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -54,6 +53,10 @@ public class ActivityController {
     private GoodsDao goodsDao;
     @Autowired
     private ActivityRuleDao activityRuleDao;
+    @Autowired
+    private ActivityRuleGoodsDao activityRuleGoodsDao;
+    @Autowired
+    private ActivityRuleRangeDao activityRuleRangeDao;
 
     /**
      * 保存
@@ -177,6 +180,46 @@ public class ActivityController {
                 activityRuleDao.save(activityRulePo);
             }
         }
+        activityRuleGoodsDao.deleteAllByActivityId(po.getId());
+        activityRuleRangeDao.deleteAllByActivityId(po.getId());
+        if (vo.getActivityRuleGoodsList() != null) {
+            for (ActivityRuleGoodsPo activityRuleGoodsPo : vo.getActivityRuleGoodsList()) {
+                activityRuleGoodsPo.setActivityId(po.getId());
+                if (StringUtils.isNotBlank(activityRuleGoodsPo.getGoodsId())) {
+                    GoodsPo goodsPo = goodsDao.findById(activityRuleGoodsPo.getGoodsId()).get();
+                    activityRuleGoodsPo.setGoodsCode(goodsPo.getCode());
+                    activityRuleGoodsPo.setGoodsName(goodsPo.getName());
+                    activityRuleGoodsPo.setGoodsId(goodsPo.getId());
+                }
+                activityRuleGoodsDao.save(activityRuleGoodsPo);
+            }
+        }
+        if (vo.getActivityRuleRangeList() != null) {
+            for (ActivityRuleRangePo activityRuleRangePo : vo.getActivityRuleRangeList()) {
+                activityRuleRangePo.setActivityId(po.getId());
+                if (StringUtils.isNotBlank(activityRuleRangePo.getGoodsBrandId())) {
+                    DictPo dictPo = dictDao.findById(activityRuleRangePo.getGoodsBrandId()).get();
+                    activityRuleRangePo.setGoodsBrandId(dictPo.getId());
+                    activityRuleRangePo.setGoodsBrandName(dictPo.getName());
+                }
+                if (StringUtils.isNotBlank(activityRuleRangePo.getGoodsCategoryId())) {
+                    DictPo dictPo = dictDao.findById(activityRuleRangePo.getGoodsCategoryId()).get();
+                    activityRuleRangePo.setGoodsCategoryId(dictPo.getId());
+                    activityRuleRangePo.setGoodsCategoryName(dictPo.getName());
+                }
+                if (StringUtils.isNotBlank(activityRuleRangePo.getGoodsYearId())) {
+                    DictPo dictPo = dictDao.findById(activityRuleRangePo.getGoodsYearId()).get();
+                    activityRuleRangePo.setGoodsYearId(dictPo.getId());
+                    activityRuleRangePo.setGoodsYearName(dictPo.getName());
+                }
+                if (StringUtils.isNotBlank(activityRuleRangePo.getGoodsSeasonId())) {
+                    DictPo dictPo = dictDao.findById(activityRuleRangePo.getGoodsSeasonId()).get();
+                    activityRuleRangePo.setGoodsSeasonId(dictPo.getId());
+                    activityRuleRangePo.setGoodsSeasonName(dictPo.getName());
+                }
+                activityRuleRangeDao.save(activityRuleRangePo);
+            }
+        }
         return BaseJson.getSuccess();
     }
 
@@ -229,6 +272,8 @@ public class ActivityController {
         vo.setActivityGoodsList(activityGoodsDao.findByActivityId(vo.getId()));
         vo.setActivityConditionGoodsList(activityConditionGoodsDao.findByActivityId(vo.getId()));
         vo.setActivityRuleList(activityRuleDao.findByActivityId(vo.getId()));
+        vo.setActivityRuleGoodsList(activityRuleGoodsDao.findByActivityId(vo.getId()));
+        vo.setActivityRuleRangeList(activityRuleRangeDao.findByActivityId(vo.getId()));
         return BaseJson.getSuccess(vo);
     }
 

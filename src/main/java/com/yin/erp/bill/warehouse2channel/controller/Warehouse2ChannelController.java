@@ -61,7 +61,7 @@ public class Warehouse2ChannelController {
      * @return
      */
     @PostMapping(value = "delete")
-    public BaseJson delete(@RequestBody BaseDeleteVo vo) {
+    public BaseJson delete(@RequestBody BaseDeleteVo vo) throws MessageException {
         warehouse2ChannelService.delete(vo);
         return BaseJson.getSuccess("删除成功");
     }

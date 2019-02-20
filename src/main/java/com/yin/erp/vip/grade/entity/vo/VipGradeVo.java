@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 
+import java.math.BigDecimal;
+
 /**
  * 会员等级
  *
@@ -26,4 +28,6 @@ public class VipGradeVo extends BasePageVo {
     private boolean defaultGrade = false;
 
     private Integer lowestXpValue;
+
+    private BigDecimal discount;
 }

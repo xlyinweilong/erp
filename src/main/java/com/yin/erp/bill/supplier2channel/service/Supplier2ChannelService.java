@@ -7,6 +7,7 @@ import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
 import com.yin.erp.base.utils.ExcelReadUtil;
 import com.yin.erp.bill.common.entity.po.BillDetailPo;
+import com.yin.erp.bill.common.entity.po.BillPo;
 import com.yin.erp.bill.common.entity.vo.BillVo;
 import com.yin.erp.bill.common.entity.vo.in.BaseAuditVo;
 import com.yin.erp.bill.common.entity.vo.in.BaseBillExportVo;
@@ -71,8 +72,8 @@ public class Supplier2ChannelService extends BillService {
      * @throws MessageException
      */
     @Override
-    public void save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
-        billCommonService.save(new Supplier2ChannelPo(), vo, userSessionBo, supplier2ChannelDao, supplier2ChannelGoodsDao, supplier2ChannelDetailDao, "CKTH");
+    public BillPo save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
+        return billCommonService.save(new Supplier2ChannelPo(), vo, userSessionBo, supplier2ChannelDao, supplier2ChannelGoodsDao, supplier2ChannelDetailDao, "CKTH");
     }
 
 
@@ -81,11 +82,9 @@ public class Supplier2ChannelService extends BillService {
      *
      * @param vo
      */
-    public void delete(BaseDeleteVo vo) {
+    public void delete(BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
-            supplier2ChannelDetailDao.deleteAllByBillId(id);
-            supplier2ChannelGoodsDao.deleteAllByBillId(id);
-            supplier2ChannelDao.deleteById(id);
+            billCommonService.deleteById(id, supplier2ChannelDao, supplier2ChannelGoodsDao, supplier2ChannelDetailDao);
         }
     }
 
@@ -98,11 +97,7 @@ public class Supplier2ChannelService extends BillService {
         Date d = new Date();
         for (String id : vo.getIds()) {
             Supplier2ChannelPo po = supplier2ChannelDao.findById(id).get();
-            po.setAuditUserId(userSessionBo.getId());
-            po.setAuditUserName(userSessionBo.getName());
-            po.setStatus(vo.getStatus());
-            po.setAuditDate(d);
-            supplier2ChannelDao.save(po);
+            billCommonService.audit(id, vo, userSessionBo, d, supplier2ChannelDao, supplier2ChannelGoodsDao, supplier2ChannelDetailDao);
             if (vo.getStatus().equals(BillStatusEnum.AUDITED.name())) {
                 for (BillDetailPo detail : supplier2ChannelDetailDao.findByBillId(id)) {
                     stockChannelService.add(detail, po.getChannelId());
@@ -120,8 +115,7 @@ public class Supplier2ChannelService extends BillService {
     public void unAudit(BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
             Supplier2ChannelPo po = supplier2ChannelDao.findById(id).get();
-            po.setStatus("AUDIT_FAILURE");
-            supplier2ChannelDao.save(po);
+            billCommonService.unAudit(id, supplier2ChannelDao, supplier2ChannelGoodsDao, supplier2ChannelDetailDao);
             for (BillDetailPo detail : supplier2ChannelDetailDao.findByBillId(id)) {
                 stockChannelService.minus(detail, po.getChannelId());
             }

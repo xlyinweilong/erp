@@ -8,22 +8,28 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.util.Date;
 
 /**
  * 销售货品
  */
 @Entity
-@Table(name = "bill_cash_goods")
+@Table(name = "bill_pos_cash_detail")
 @Getter
 @Setter
-public class CashGoodsPo extends BasePo {
+public class PosCashDetailPo extends BasePo {
 
     /**
      * 销售ID
      */
-    @Column(name = "cash_id")
-    private String cashId;
+    @Column(name = "bill_id")
+    private String billId;
+
+    /**
+     * 单据时间
+     */
+    @Column(name = "bill_date")
+    private Date billDate;
 
     /**
      * 货品ID
@@ -38,58 +44,46 @@ public class CashGoodsPo extends BasePo {
     private String goodsCode;
 
     /**
+     * 货品名称
+     */
+    @Column(name = "goods_name")
+    private String goodsName;
+
+    /**
      * 颜色ID
      */
-    @Column(name = "color_id")
-    private String colorId;
+    @Column(name = "goods_color_id")
+    private String goodsColorId;
 
     /**
      * 颜色编号
      */
-    @Column(name = "color_code")
-    private String colorCode;
+    @Column(name = "goods_color_code")
+    private String goodsColorCode;
 
     /**
      * 颜色名称
      */
-    @Column(name = "color_name")
-    private String colorName;
+    @Column(name = "goods_color_name")
+    private String goodsColorName;
 
     /**
      * 尺码ID
      */
-    @Column(name = "size_id")
-    private String sizeId;
+    @Column(name = "goods_size_id")
+    private String goodsSizeId;
 
     /**
      * 尺码名称
      */
-    @Column(name = "size_name")
-    private String sizeName;
-
-    /**
-     * 单据时间
-     */
-    @Column(name = "bill_date")
-    private LocalDate billDate;
+    @Column(name = "goods_size_name")
+    private String goodsSizeName;
 
     /**
      * 渠道ID
      */
     @Column(name = "channel_id")
     private String channelId;
-
-    /**
-     * 渠道编号
-     */
-    @Column(name = "channel_code")
-    private String channelCode;
-
-    /**
-     * 渠道名称
-     */
-    @Column(name = "channel_name")
-    private String channelName;
 
     /**
      * 金额
@@ -132,5 +126,41 @@ public class CashGoodsPo extends BasePo {
      */
     @Column(name = "employ_name")
     private String employName;
+
+    /**
+     * 获得的积分
+     */
+    @Column(name = "integral")
+    private Integer integral;
+
+    /**
+     * 获得的经验
+     */
+    @Column(name = "xp")
+    private Integer xp;
+
+    /**
+     * 状态
+     */
+    @Column(name = "status")
+    private String status;
+
+    /**
+     * 备注
+     */
+    @Column(name = "remarks")
+    private String remarks;
+
+
+    @Column(name = "vip_discount")
+    private BigDecimal vipDiscount;
+
+
+    @Column(name = "activity_id")
+    private String activityId;
+
+
+    @Column(name = "diy_price")
+    private BigDecimal diyPrice;
 
 }

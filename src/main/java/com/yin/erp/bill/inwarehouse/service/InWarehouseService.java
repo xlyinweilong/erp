@@ -13,6 +13,7 @@ import com.yin.erp.bill.channel2warehouse.dao.Channel2WarehouseGoodsDao;
 import com.yin.erp.bill.channel2warehouse.entity.po.Channel2WarehousePo;
 import com.yin.erp.bill.common.entity.po.BillDetailPo;
 import com.yin.erp.bill.common.entity.po.BillGoodsPo;
+import com.yin.erp.bill.common.entity.po.BillPo;
 import com.yin.erp.bill.common.entity.vo.BillVo;
 import com.yin.erp.bill.common.entity.vo.in.*;
 import com.yin.erp.bill.common.enums.BillStatusEnum;
@@ -22,7 +23,7 @@ import com.yin.erp.bill.inwarehouse.dao.InWarehouseDao;
 import com.yin.erp.bill.inwarehouse.dao.InWarehouseDetailDao;
 import com.yin.erp.bill.inwarehouse.dao.InWarehouseGoodsDao;
 import com.yin.erp.bill.inwarehouse.entity.po.InWarehousePo;
-import com.yin.erp.stock.service.StockChannelService;
+import com.yin.erp.stock.service.StockWarehouseService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Row;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +59,7 @@ public class InWarehouseService extends BillService {
     @Autowired
     private InWarehouseDetailDao inWarehouseDetailDao;
     @Autowired
-    private StockChannelService stockChannelService;
+    private StockWarehouseService stockWarehouseService;
     @Autowired
     private Channel2WarehouseDao channel2WarehouseDao;
     @Autowired
@@ -89,8 +90,22 @@ public class InWarehouseService extends BillService {
      * @throws MessageException
      */
     @Override
-    public void save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
-        billCommonService.save(new InWarehousePo(), vo, userSessionBo, inWarehouseDao, inWarehouseGoodsDao, inWarehouseDetailDao, "CKSTH", this.findParentGoodsList(vo.getParentBillId()));
+    public BillPo save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
+        //如果是修改，删除原来的上游引用
+        if (StringUtils.isNotBlank(vo.getId())) {
+            //查询上游单据
+            Channel2WarehousePo oldParent = channel2WarehouseDao.findById(inWarehouseDao.findById(vo.getId()).get().getParentBillId()).get();
+            oldParent.setChildBillId(null);
+            oldParent.setStatus("AUDITED");
+            channel2WarehouseDao.save(oldParent);
+        }
+        BillPo billPo = billCommonService.save(new InWarehousePo(), vo, userSessionBo, inWarehouseDao, inWarehouseGoodsDao, inWarehouseDetailDao, "CKSTH", this.findParentGoodsList(vo.getParentBillId()));
+        //查询上游单据
+        Channel2WarehousePo newParent = channel2WarehouseDao.findById(vo.getParentBillId()).get();
+        newParent.setChildBillId(billPo.getId());
+        newParent.setStatus("QUOTE");
+        channel2WarehouseDao.save(newParent);
+        return billPo;
     }
 
 
@@ -99,11 +114,14 @@ public class InWarehouseService extends BillService {
      *
      * @param vo
      */
-    public void delete(BaseDeleteVo vo) {
+    public void delete(BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
-            inWarehouseDetailDao.deleteAllByBillId(id);
-            inWarehouseGoodsDao.deleteAllByBillId(id);
-            inWarehouseDao.deleteById(id);
+            //删除上游引用
+            Channel2WarehousePo oldParent = channel2WarehouseDao.findById(inWarehouseDao.findById(id).get().getParentBillId()).get();
+            oldParent.setChildBillId(null);
+            oldParent.setStatus("AUDITED");
+            channel2WarehouseDao.save(oldParent);
+            billCommonService.deleteById(id, inWarehouseDao, inWarehouseGoodsDao, inWarehouseDetailDao);
         }
     }
 
@@ -116,17 +134,18 @@ public class InWarehouseService extends BillService {
         Date d = new Date();
         for (String id : vo.getIds()) {
             InWarehousePo po = inWarehouseDao.findById(id).get();
-            po.setAuditUserId(userSessionBo.getId());
-            po.setAuditUserName(userSessionBo.getName());
-            po.setStatus(vo.getStatus());
-            po.setAuditDate(d);
-            inWarehouseDao.save(po);
+            billCommonService.audit(id, vo, userSessionBo, d, inWarehouseDao, inWarehouseGoodsDao, inWarehouseDetailDao);
             if (vo.getStatus().equals(BillStatusEnum.AUDITED.name())) {
                 for (BillDetailPo detail : inWarehouseDetailDao.findByBillId(id)) {
-                    stockChannelService.add(detail, po.getWarehouseId());
+                    stockWarehouseService.add(detail, po.getWarehouseId());
                     //修改上游单据数量 TODO
                 }
+                //修改上游单据状态
+                Channel2WarehousePo parent = channel2WarehouseDao.findById(po.getParentBillId()).get();
+                parent.setStatus("COMPLETE");
+                channel2WarehouseDao.save(parent);
             }
+
         }
         inWarehouseDao.flush();
     }
@@ -139,12 +158,15 @@ public class InWarehouseService extends BillService {
     public void unAudit(BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
             InWarehousePo po = inWarehouseDao.findById(id).get();
-            po.setStatus("AUDIT_FAILURE");
-            inWarehouseDao.save(po);
+            billCommonService.unAudit(id, inWarehouseDao, inWarehouseGoodsDao, inWarehouseDetailDao);
             for (BillDetailPo detail : inWarehouseDetailDao.findByBillId(id)) {
-                stockChannelService.minus(detail, po.getWarehouseId());
+                stockWarehouseService.minus(detail, po.getWarehouseId());
                 //修改上游单据数量 TODO
             }
+            //修改上游单据状态
+            Channel2WarehousePo parent = channel2WarehouseDao.findById(po.getParentBillId()).get();
+            parent.setStatus("QUOTE");
+            channel2WarehouseDao.save(parent);
         }
     }
 
@@ -223,9 +245,10 @@ public class InWarehouseService extends BillService {
      * @return
      */
     public Page<Channel2WarehousePo> findParentBill(String code) {
-        //TODO 只查询未完成的单据
         Page<Channel2WarehousePo> page = channel2WarehouseDao.findAll((root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
+            predicates.add(criteriaBuilder.isNull(root.get("childBillId")));
+            predicates.add(criteriaBuilder.equal(root.get("status"), "AUDITED"));
             if (StringUtils.isNotBlank(code)) {
                 predicates.add(criteriaBuilder.like(root.get("code"), "%" + code + "%"));
             }

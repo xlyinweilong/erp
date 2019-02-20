@@ -5,10 +5,10 @@ import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.info.dict.dao.DictDao;
 import com.yin.erp.vip.grade.dao.VipGradeDao;
-import com.yin.erp.vip.xp.dao.VipXpUpRuleDao;
-import com.yin.erp.vip.xp.dao.VipXpUpRuleGoodsDao;
-import com.yin.erp.vip.xp.entity.po.VipXpUpRuleGoodsPo;
-import com.yin.erp.vip.xp.entity.po.VipXpUpRulePo;
+import com.yin.erp.vip.xp.dao.VipXpRuleDao;
+import com.yin.erp.vip.xp.dao.VipXpRuleGoodsDao;
+import com.yin.erp.vip.xp.entity.po.VipXpRuleGoodsPo;
+import com.yin.erp.vip.xp.entity.po.VipXpRulePo;
 import com.yin.erp.vip.xp.entity.vo.VipXpUpRuleGoodsVo;
 import com.yin.erp.vip.xp.entity.vo.VipXpUpRuleVo;
 import org.apache.commons.lang3.StringUtils;
@@ -37,9 +37,9 @@ public class VipXpUpRuleController {
     @Autowired
     private VipGradeDao vipGradeDao;
     @Autowired
-    private VipXpUpRuleDao vipXpUpRuleDao;
+    private VipXpRuleDao vipXpUpRuleDao;
     @Autowired
-    private VipXpUpRuleGoodsDao vipXpUpRuleGoodsDao;
+    private VipXpRuleGoodsDao vipXpUpRuleGoodsDao;
     @Autowired
     private DictDao dictDao;
 
@@ -53,7 +53,7 @@ public class VipXpUpRuleController {
      */
     @PostMapping(value = "save", consumes = "application/json")
     public BaseJson save(@Validated @RequestBody VipXpUpRuleVo vo) throws MessageException {
-        VipXpUpRulePo po = new VipXpUpRulePo();
+        VipXpRulePo po = new VipXpRulePo();
         if (StringUtils.isNotBlank(vo.getId())) {
             po = vipXpUpRuleDao.findById(vo.getId()).get();
         }
@@ -76,7 +76,7 @@ public class VipXpUpRuleController {
      */
     @GetMapping(value = "list")
     public BaseJson list(VipXpUpRuleVo vo) throws MessageException {
-        Page<VipXpUpRulePo> page = vipXpUpRuleDao.findAll((root, criteriaQuery, criteriaBuilder) -> {
+        Page<VipXpRulePo> page = vipXpUpRuleDao.findAll((root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (StringUtils.isNotBlank(vo.getSearchKey())) {
                 predicates.add(criteriaBuilder.like(root.get("name"), "%" + vo.getSearchKey() + "%"));
@@ -111,7 +111,7 @@ public class VipXpUpRuleController {
      */
     @GetMapping(value = "goods_list")
     public BaseJson goodsList(VipXpUpRuleGoodsVo vo) throws MessageException {
-        Page<VipXpUpRuleGoodsPo> page = vipXpUpRuleGoodsDao.findAll((root, criteriaQuery, criteriaBuilder) -> {
+        Page<VipXpRuleGoodsPo> page = vipXpUpRuleGoodsDao.findAll((root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(criteriaBuilder.equal(root.get("vipXpUpRuleId"), vo.getVipXpUpRuleId()));
             if (StringUtils.isNotBlank(vo.getSearchKey())) {
@@ -131,9 +131,9 @@ public class VipXpUpRuleController {
      */
     @PostMapping(value = "save_goods")
     public BaseJson saveGoods(@RequestBody VipXpUpRuleGoodsVo vo) throws MessageException {
-        VipXpUpRuleGoodsPo po = new VipXpUpRuleGoodsPo();
+        VipXpRuleGoodsPo po = new VipXpRuleGoodsPo();
         if(StringUtils.isNotBlank(vo.getId())){
-            VipXpUpRuleGoodsPo dbPo = vipXpUpRuleGoodsDao.findById(vo.getId()).get();
+            VipXpRuleGoodsPo dbPo = vipXpUpRuleGoodsDao.findById(vo.getId()).get();
             po.setVersion(dbPo.getVersion());
             po.setCreateDate(dbPo.getCreateDate());
         }

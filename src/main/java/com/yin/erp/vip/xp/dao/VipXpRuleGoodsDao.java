@@ -1,7 +1,7 @@
 package com.yin.erp.vip.xp.dao;
 
 
-import com.yin.erp.vip.xp.entity.po.VipXpUpRuleGoodsPo;
+import com.yin.erp.vip.xp.entity.po.VipXpRuleGoodsPo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -14,10 +14,10 @@ import org.springframework.stereotype.Repository;
  * @author yin
  */
 @Repository
-public interface VipXpUpRuleGoodsDao extends JpaRepository<VipXpUpRuleGoodsPo, String>, JpaSpecificationExecutor {
+public interface VipXpRuleGoodsDao extends JpaRepository<VipXpRuleGoodsPo, String>, JpaSpecificationExecutor {
 
 
     @Modifying
-    @Query("delete from VipXpUpRuleGoodsPo t where t.vipXpUpRuleId = :vipXpUpRuleId")
+    @Query("delete from VipXpRuleGoodsPo t where t.vipXpUpRuleId = :vipXpUpRuleId")
     int deleteAllByRuleId(String vipXpUpRuleId);
 }

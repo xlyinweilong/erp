@@ -46,6 +46,10 @@ public class Channel2ChannelOutPo extends BillPo {
     @Column(name = "to_channel_code")
     private String toChannelCode;
 
+    @Column(name = "child_bill_id")
+    private String childBillId;
+
+
     @Override
     public BillGoodsPo getBillGoodsInstance() {
         return new Channel2ChannelOutGoodsPo();
