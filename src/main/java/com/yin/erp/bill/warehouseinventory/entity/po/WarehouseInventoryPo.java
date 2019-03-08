@@ -22,6 +22,12 @@ import javax.persistence.UniqueConstraint;
 @Setter
 public class WarehouseInventoryPo extends BillPo {
 
+    @Column(name = "parent_bill_id")
+    private String parentBillId;
+
+    @Column(name = "parent_bill_code")
+    private String parentBillCode;
+
     /**
      * 渠道
      */
@@ -33,6 +39,12 @@ public class WarehouseInventoryPo extends BillPo {
 
     @Column(name = "warehouse_code")
     private String warehouseCode;
+
+    /**
+     * 盘次
+     */
+    @Column(name = "times")
+    private Integer times;
 
     @Override
     public BillGoodsPo getBillGoodsInstance() {

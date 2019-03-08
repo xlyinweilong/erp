@@ -5,7 +5,6 @@ import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.base.entity.vo.out.BackPageVo;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
-import com.yin.erp.base.utils.ExcelReadUtil;
 import com.yin.erp.bill.common.entity.po.BillDetailPo;
 import com.yin.erp.bill.common.entity.po.BillPo;
 import com.yin.erp.bill.common.entity.vo.BillVo;
@@ -20,7 +19,6 @@ import com.yin.erp.bill.warehouse2supplier.dao.Warehouse2SupplierDetailDao;
 import com.yin.erp.bill.warehouse2supplier.dao.Warehouse2SupplierGoodsDao;
 import com.yin.erp.bill.warehouse2supplier.entity.po.Warehouse2SupplierPo;
 import com.yin.erp.stock.service.StockWarehouseService;
-import org.apache.poi.ss.usermodel.Row;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -93,6 +91,7 @@ public class Warehouse2SupplierService extends BillService {
      *
      * @param vo
      */
+    @Override
     public void audit(BaseAuditVo vo, UserSessionBo userSessionBo) throws MessageException {
         Date d = new Date();
         for (String id : vo.getIds()) {
@@ -140,17 +139,6 @@ public class Warehouse2SupplierService extends BillService {
      */
     public void uploadBill(MultipartFile file, UserSessionBo userSessionBo) {
         billCommonService.uploadBill(file, userSessionBo, this, "w2s");
-    }
-
-    @Override
-    public String uploadBillWarehouseCode(Row row) throws MessageException {
-        return ExcelReadUtil.getString(row.getCell(1));
-    }
-
-
-    @Override
-    public String uploadBillSupplierCode(Row row) throws MessageException {
-        return ExcelReadUtil.getString(row.getCell(2));
     }
 
     /**

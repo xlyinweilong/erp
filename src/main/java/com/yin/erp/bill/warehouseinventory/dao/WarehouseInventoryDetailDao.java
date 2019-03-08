@@ -1,6 +1,6 @@
 package com.yin.erp.bill.warehouseinventory.dao;
 
-import com.yin.erp.bill.common.dao.BaseBillDetailDao;
+import com.yin.erp.bill.common.dao.BaseBillInventoryDetailDao;
 import com.yin.erp.bill.common.entity.po.BillDetailPo;
 import com.yin.erp.bill.warehouseinventory.entity.po.WarehouseInventoryDetailPo;
 import org.springframework.data.jpa.repository.Modifying;
@@ -16,7 +16,7 @@ import java.util.List;
  * @author yin
  */
 @Resource
-public interface WarehouseInventoryDetailDao extends BaseBillDetailDao<WarehouseInventoryDetailPo, String> {
+public interface WarehouseInventoryDetailDao extends BaseBillInventoryDetailDao<WarehouseInventoryDetailPo, String> {
 
     @Modifying
     @Query("delete from WarehouseInventoryDetailPo t where t.billId = :billId")
@@ -25,4 +25,8 @@ public interface WarehouseInventoryDetailDao extends BaseBillDetailDao<Warehouse
 
     @Override
     List<BillDetailPo> findByBillId(String billId);
+
+    @Override
+    @Query("select t from WarehouseInventoryDetailPo t where t.billId in :billIdList")
+    List<BillDetailPo> findInBillIds(@Param("billIdList") List<String> billIdList);
 }

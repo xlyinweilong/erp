@@ -16,4 +16,14 @@ import javax.annotation.Resource;
 public interface BarCodeDao extends JpaRepository<BarCodePo, String>, JpaSpecificationExecutor {
 
     BarCodePo findByCode(String code);
+
+
+    Long countByGoodsId(String goodsId);
+
+
+    Long countByGoodsIdAndGoodsColorId(String goodsId, String goodsColorId);
+
+
+    Long countByGoodsSizeId(String goodsSizeId);
+
 }

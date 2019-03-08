@@ -127,5 +127,28 @@ public class Supplier2WarehouseController {
         return BaseJson.getSuccess("文件上传成功");
     }
 
+    /**
+     * 查询上级单据（渠道调出）
+     *
+     * @param code
+     * @return
+     */
+    @GetMapping(value = "parent_bill")
+    public BaseJson parentBill(String code) throws MessageException {
+        return BaseJson.getSuccess(supplier2WarehouseService.findParentBill(code));
+    }
+
+    /**
+     * 获取上级单据明细
+     *
+     * @param id
+     * @return
+     * @throws MessageException
+     */
+    @GetMapping(value = "parent_bill_goods")
+    public BaseJson parentBillGoods(String id) throws MessageException {
+        return BaseJson.getSuccess(supplier2WarehouseService.findParentGoodsList(id));
+    }
+
 
 }

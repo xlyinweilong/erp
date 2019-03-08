@@ -3,6 +3,7 @@ package com.yin.erp.info.warehouse.service;
 import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
+import com.yin.erp.bill.common.dao.warehouse.BaseBillWarehouseDao;
 import com.yin.erp.config.sysconfig.dao.ConfigWarehouseDao;
 import com.yin.erp.config.sysconfig.entity.po.ConfigPo;
 import com.yin.erp.config.sysconfig.entity.po.ConfigWarehousePo;
@@ -12,6 +13,7 @@ import com.yin.erp.info.warehouse.entity.po.WarehousePo;
 import com.yin.erp.info.warehouse.entity.vo.WarehouseVo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 仓库服务
@@ -38,6 +41,8 @@ public class WarehouseService {
     private DictFeign dictFeign;
     @Autowired
     private ConfigWarehouseDao configWarehouseDao;
+    @Autowired
+    private ApplicationContext context;
 
     /**
      * 保存
@@ -111,9 +116,15 @@ public class WarehouseService {
      *
      * @param vo
      */
-    public void delete(BaseDeleteVo vo) {
+    public void delete(BaseDeleteVo vo) throws MessageException{
         for (String id : vo.getIds()) {
-            //查询货品/渠道引用情况 TODO
+            //单据引用
+            Map<String, BaseBillWarehouseDao> beans = context.getBeansOfType(BaseBillWarehouseDao.class);
+            for (String beanName : beans.keySet()) {
+                if (beans.get(beanName).countByWarehouseId(id) > 0L) {
+                    throw new MessageException("数据已经被引用，无法删除");
+                }
+            }
             warehouseDao.deleteById(id);
             configWarehouseDao.deleteAllByWarehouseId(id);
         }

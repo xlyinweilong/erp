@@ -14,5 +14,6 @@ import org.springframework.data.repository.NoRepositoryBean;
 @NoRepositoryBean
 public interface BaseBillDao<T, String> extends JpaRepository<T, String>, JpaSpecificationExecutor {
 
-    BillPo findByCode(String parentBillCode);
+    BillPo findByCode(String code);
+
 }

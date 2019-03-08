@@ -2,19 +2,24 @@ package com.yin.erp.info.dict.service;
 
 import com.yin.erp.base.entity.vo.out.BackPageVo;
 import com.yin.erp.base.exceptions.MessageException;
+import com.yin.erp.bill.common.dao.BaseBillDetailDao;
+import com.yin.erp.info.barcode.dao.BarCodeDao;
+import com.yin.erp.info.channel.dao.ChannelDao;
 import com.yin.erp.info.dict.dao.DictDao;
 import com.yin.erp.info.dict.dao.DictSizeDao;
 import com.yin.erp.info.dict.entity.po.DictPo;
 import com.yin.erp.info.dict.entity.po.DictSizePo;
 import com.yin.erp.info.dict.entity.vo.DictVo;
 import com.yin.erp.info.dict.entity.vo.in.DictDeleteVo;
-import com.yin.erp.info.dict.enums.DictGoodsType;
-import com.yin.erp.info.dict.enums.DictType;
+import com.yin.erp.info.dict.enums.*;
 import com.yin.erp.info.goods.dao.GoodsColorDao;
 import com.yin.erp.info.goods.entity.vo.GoodsVo;
 import com.yin.erp.info.goods.service.GoodsService;
+import com.yin.erp.info.supplier.dao.SupplierDao;
+import com.yin.erp.info.warehouse.dao.WarehouseDao;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -22,10 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -46,7 +48,16 @@ public class DictService {
     private GoodsService goodsService;
     @Autowired
     private GoodsColorDao goodsColorDao;
-
+    @Autowired
+    private ChannelDao channelDao;
+    @Autowired
+    private SupplierDao supplierDao;
+    @Autowired
+    private WarehouseDao warehouseDao;
+    @Autowired
+    private BarCodeDao barCodeDao;
+    @Autowired
+    private ApplicationContext context;
 
     /**
      * 保存
@@ -58,7 +69,7 @@ public class DictService {
         DictPo po = new DictPo();
         if (StringUtils.isNotBlank(vo.getId())) {
             //判断引用情况
-            if (!DictGoodsType.SIZE_GROUP.name().equals(po.getType2()) && this.isQuote(vo.getId(), vo.getType1(), vo.getType2())) {
+            if (!DictGoodsType.SIZE_GROUP.name().equals(vo.getType2()) && this.isQuote(vo.getId(), vo.getType1(), vo.getType2())) {
                 DictPo p = dictDao.findById(vo.getId()).get();
                 throw new MessageException((StringUtils.isNotBlank(p.getCode()) ? "编号：" + p.getCode() + "，" : "") + "名称：" + p.getName() + "，已经被引用，不能修改");
             }
@@ -78,7 +89,20 @@ public class DictService {
                     throw new MessageException("尺码组：" + oldName + "，已经被引用，不能名称修改");
                 }
                 //判断尺码的引用情况（单据、条形码）
-                List<DictSizePo> deleteDictSizeList = dictSizeList.stream().filter(d -> !vo.getSizeList().contains(d.getId())).collect(Collectors.toList());
+                List<DictSizePo> deleteDictSizeList = dictSizeList.stream().filter(d -> vo.getSizeList().stream().filter(v -> v.getId().equals(d.getId())).count() == 0).collect(Collectors.toList());
+                for (DictSizePo dictSizePo : deleteDictSizeList) {
+                    if (barCodeDao.countByGoodsSizeId(dictSizePo.getId()) > 0) {
+                        throw new MessageException("尺码：" + dictSizePo.getName() + "，已经被引用，不能修改");
+                    }
+                    //单据引用
+                    Map<String, BaseBillDetailDao> beans = context.getBeansOfType(BaseBillDetailDao.class);
+                    for (String beanName : beans.keySet()) {
+                        if (beans.get(beanName).countByGoodsSizeId(dictSizePo.getId()) > 0L) {
+                            throw new MessageException("尺码：" + dictSizePo.getName() + "，已经被引用，不能修改");
+                        }
+                    }
+                }
+
             }
             dictSizeDao.deleteByGroupId(po.getId());
             if (vo.getSizeList() != null) {
@@ -240,9 +264,24 @@ public class DictService {
                 if (DictGoodsType.SEX.name().equals(type2)) {
                     goodsVo.setSexId(id);
                 }
+                if (DictGoodsType.GOODS_GROUP.name().equals(type2)) {
+                    goodsVo.setGoodsGroupId(id);
+                }
                 if (goodsService.findCount(goodsVo) > 0L) {
                     return true;
                 }
+            }
+        } else if (DictType.SUPPLIER.name().equals(type1)) {
+            if (DictSupplierType.SUPPLIER_GROUP.name().equals(type2)) {
+                return supplierDao.countByGourpId(id) > 0L;
+            }
+        } else if (DictType.CHANNEL.name().equals(type1)) {
+            if (DictChannelType.CHANNEL_GROUP.name().equals(type2)) {
+                return channelDao.countByGourpId(id) > 0L;
+            }
+        } else if (DictType.WAREHOUSE.name().equals(type1)) {
+            if (DictWarehouseType.WAREHOUSE_GROUP.name().equals(type2)) {
+                return warehouseDao.countByGourpId(id) > 0L;
             }
         }
         return false;

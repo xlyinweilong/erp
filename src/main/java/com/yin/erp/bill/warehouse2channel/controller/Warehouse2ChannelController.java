@@ -127,4 +127,50 @@ public class Warehouse2ChannelController {
         return BaseJson.getSuccess("文件上传成功");
     }
 
+    /**
+     * 查询上级单据
+     *
+     * @param code
+     * @return
+     */
+    @GetMapping(value = "parent_bill")
+    public BaseJson parentBill(String code) throws MessageException {
+        return BaseJson.getSuccess(warehouse2ChannelService.findParentBill(code));
+    }
+
+    /**
+     * 获取上级单据明细
+     *
+     * @param id
+     * @return
+     * @throws MessageException
+     */
+    @GetMapping(value = "parent_bill_goods")
+    public BaseJson parentBillGoods(String id) throws MessageException {
+        return BaseJson.getSuccess(warehouse2ChannelService.findParentGoodsList(id));
+    }
+
+    /**
+     * 查询上级单据
+     *
+     * @param code
+     * @return
+     */
+    @GetMapping(value = "grand_parent_bill")
+    public BaseJson grandParentBill(String code) throws MessageException {
+        return BaseJson.getSuccess(warehouse2ChannelService.findGrandParentBill(code));
+    }
+
+    /**
+     * 获取上级单据明细
+     *
+     * @param id
+     * @return
+     * @throws MessageException
+     */
+    @GetMapping(value = "grand_parent_bill_goods")
+    public BaseJson grandParentBillGoods(String id) throws MessageException {
+        return BaseJson.getSuccess(warehouse2ChannelService.findGrandParentGoodsList(id));
+    }
+
 }

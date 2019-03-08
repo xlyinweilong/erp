@@ -1,11 +1,13 @@
 package com.yin.erp.stock.dao;
 
 
+import com.yin.erp.stock.entity.po.BaseStockPo;
 import com.yin.erp.stock.entity.po.StockChannelPo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * 渠道库存
@@ -25,5 +27,14 @@ public interface StockChannelDao extends JpaRepository<StockChannelPo, String>, 
      * @return
      */
     StockChannelPo findByChannelIdAndGoodsIdAndGoodsColorIdAndGoodsSizeId(String channelId, String goodsId, String goodsColorId, String goodsSizeId);
+
+
+    /**
+     * 查询某渠道得全部库存
+     *
+     * @param channelId
+     * @return
+     */
+    List<BaseStockPo> findAllByChannelId(String channelId);
 
 }

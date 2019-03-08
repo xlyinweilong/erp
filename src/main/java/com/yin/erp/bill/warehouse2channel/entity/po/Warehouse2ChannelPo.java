@@ -22,6 +22,18 @@ import javax.persistence.UniqueConstraint;
 @Setter
 public class Warehouse2ChannelPo extends BillPo {
 
+    @Column(name = "parent_bill_id")
+    private String parentBillId;
+
+    @Column(name = "parent_bill_code")
+    private String parentBillCode;
+
+    @Column(name = "grand_parent_bill_id")
+    private String grandParentBillId;
+
+    @Column(name = "grand_parent_bill_code")
+    private String grandParentBillCode;
+
     /**
      * 仓库
      */

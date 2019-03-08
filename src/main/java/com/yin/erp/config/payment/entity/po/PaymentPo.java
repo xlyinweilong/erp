@@ -34,5 +34,4 @@ public class PaymentPo extends BaseDataPo {
     @Column(name = "sys_type")
     private String sysType = "DIY";
 
-
 }

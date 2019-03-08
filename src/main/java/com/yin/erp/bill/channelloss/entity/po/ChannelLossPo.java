@@ -22,6 +22,12 @@ import javax.persistence.UniqueConstraint;
 @Setter
 public class ChannelLossPo extends BillPo {
 
+    @Column(name = "parent_bill_id")
+    private String parentBillId;
+
+    @Column(name = "parent_bill_code")
+    private String parentBillCode;
+
     /**
      * 渠道
      */

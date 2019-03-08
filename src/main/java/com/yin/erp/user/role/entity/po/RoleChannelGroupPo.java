@@ -1,12 +1,11 @@
 package com.yin.erp.user.role.entity.po;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yin.erp.base.entity.po.BaseDataPo;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * 角色菜单按钮权限表
@@ -22,6 +21,11 @@ public class RoleChannelGroupPo extends BaseDataPo {
 
     @Column(name="channel_group_id")
     private String channelGroupId;
+
+    @JsonIgnore
+    @ManyToOne(cascade = {}, optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id", updatable = false, insertable = false)
+    private RolePo rolePo;
 
     public RoleChannelGroupPo() {
     }

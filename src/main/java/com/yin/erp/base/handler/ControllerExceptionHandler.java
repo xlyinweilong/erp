@@ -8,9 +8,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
 
 
 /**
@@ -44,6 +48,22 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(value = Exception.class)
     @ResponseBody
     public BaseJson handle(Exception e) {
+        return BaseJson.getError(e.getMessage());
+    }
+
+    /**
+     * spring validate异常捕获
+     *
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(value = MethodArgumentNotValidException.class)
+    @ResponseBody
+    public BaseJson handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        List<ObjectError> objectErrors = e.getBindingResult().getAllErrors();
+        if (objectErrors.size() > 0) {
+            return BaseJson.getError(objectErrors.get(0).getDefaultMessage());
+        }
         return BaseJson.getError(e.getMessage());
     }
 

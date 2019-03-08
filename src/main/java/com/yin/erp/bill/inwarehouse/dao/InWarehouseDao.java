@@ -1,7 +1,8 @@
 package com.yin.erp.bill.inwarehouse.dao;
 
 
-import com.yin.erp.bill.common.dao.BaseBillDao;
+import com.yin.erp.bill.common.dao.channel.BaseBillChannelDao;
+import com.yin.erp.bill.common.dao.warehouse.BaseBillWarehouseDao;
 import com.yin.erp.bill.inwarehouse.entity.po.InWarehousePo;
 
 import javax.annotation.Resource;
@@ -13,6 +14,6 @@ import javax.annotation.Resource;
  * @author yin
  */
 @Resource
-public interface InWarehouseDao extends BaseBillDao<InWarehousePo, String> {
+public interface InWarehouseDao extends BaseBillWarehouseDao<InWarehousePo, String>,BaseBillChannelDao<InWarehousePo, String> {
 
 }

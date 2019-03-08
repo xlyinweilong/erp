@@ -1,16 +1,11 @@
 package com.yin.erp.activity.entity.po;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yin.erp.base.entity.po.BaseDataPo;
-import com.yin.erp.base.entity.po.BasePo;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import java.math.BigDecimal;
-import java.util.Date;
+import javax.persistence.*;
 
 /**
  * 促销活动的渠道
@@ -47,5 +42,9 @@ public class ActivityChannelPo extends BaseDataPo {
     @Column(name = "channel_name")
     private String channelName;
 
+    @JsonIgnore
+    @ManyToOne(cascade = {}, optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "activity_Id", updatable = false, insertable = false)
+    private ActivityPo activityPo;
 
 }

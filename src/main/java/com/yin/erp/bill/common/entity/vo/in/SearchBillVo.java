@@ -23,4 +23,5 @@ public class SearchBillVo extends BillVo {
     private String endBillDate;
 
     private List<String> statusList;
+
 }

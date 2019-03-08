@@ -26,4 +26,6 @@ public interface BaseBillGoodsDao<T, String> extends JpaRepository<T, String>, J
 
 
     List<BillGoodsPo> findByBillId(String billId);
+
+    Long countByGoodsId(String goodsId);
 }

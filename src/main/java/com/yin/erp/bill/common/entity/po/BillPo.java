@@ -21,6 +21,12 @@ import java.util.Date;
 public class BillPo extends BasePo {
 
     /**
+     * 手工单号
+     */
+    @Column(name = "manual_code")
+    private String manualCode;
+
+    /**
      * 单号
      */
     @Column(name = "code")
@@ -131,6 +137,27 @@ public class BillPo extends BasePo {
 
     @Transient
     private String supplierCode;
+
+    @Transient
+    private String parentBillId;
+
+    @Transient
+    private String parentBillCode;
+
+    @Transient
+    private String grandParentBillId;
+
+    @Transient
+    private String grandParentBillCode;
+
+    @Transient
+    private String childBillId;
+
+    @Transient
+    private Integer times;
+
+    @Transient
+    private Integer totalQuotedCount;
 
     public BillGoodsPo getBillGoodsInstance() {
         return new BillGoodsPo();

@@ -7,8 +7,9 @@ import com.yin.erp.base.feign.user.bo.UserSessionBo;
 import com.yin.erp.base.utils.ExcelReadUtil;
 import com.yin.erp.base.utils.GenerateUtil;
 import com.yin.erp.base.utils.TimeUtil;
+import com.yin.erp.bill.common.dao.BaseBillGoodsDao;
+import com.yin.erp.info.barcode.dao.BarCodeDao;
 import com.yin.erp.info.dict.dao.DictDao;
-import com.yin.erp.info.dict.dao.DictSizeDao;
 import com.yin.erp.info.dict.entity.bo.DictSizeBo;
 import com.yin.erp.info.dict.entity.po.DictPo;
 import com.yin.erp.info.dict.enums.DictGoodsType;
@@ -22,6 +23,7 @@ import com.yin.erp.info.goods.entity.vo.GoodsVo;
 import com.yin.erp.info.supplier.dao.SupplierDao;
 import com.yin.erp.info.supplier.entity.po.SupplierPo;
 import com.yin.erp.info.supplier.feign.SupplierFeign;
+import com.yin.erp.pos.cash.dao.PosCashDetailDao;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -29,12 +31,12 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,6 +47,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -68,13 +71,17 @@ public class GoodsService {
     @Autowired
     private SupplierDao supplierDao;
     @Autowired
-    private DictSizeDao dictSizeDao;
-    @Autowired
     private DictDao dictDao;
     @Autowired
     private RedisTemplate redisTemplate;
     @Value("${erp.file.temp.url}")
     private String erpFileTempUrl;
+    @Autowired
+    private ApplicationContext context;
+    @Autowired
+    private BarCodeDao barCodeDao;
+    @Autowired
+    private PosCashDetailDao posCashDetailDao;
 
     /**
      * 保存
@@ -86,35 +93,43 @@ public class GoodsService {
         GoodsPo po = new GoodsPo();
         if (StringUtils.isNotBlank(vo.getId())) {
             po = goodsDao.findById(vo.getId()).get();
+            if (!po.getSizeGroupId().equals(vo.getSizeGroupId()) && barCodeDao.countByGoodsId(vo.getId()) > 0L) {
+                throw new MessageException("尺码组不能修改，数据被引用");
+            }
+            List<GoodsColorPo> goodColorList = goodsColorDao.findByGoodsId(vo.getId());
+            for (GoodsColorPo goodsColorPo : goodColorList) {
+                if (vo.getColorIdList().stream().filter(c -> c.equals(goodsColorPo.getColorId())).count() == 0L && barCodeDao.countByGoodsIdAndGoodsColorId(vo.getId(), goodsColorPo.getColorId()) > 0L) {
+                    throw new MessageException("颜色：" + goodsColorPo.getColorName() + "不能修改，数据被引用");
+                }
+            }
             goodsColorDao.deleteByGoodsId(vo.getId());
-            //发送给队列，全局做数据更新 TODO
         }
         po.setCode(vo.getCode());
         po.setName(vo.getName());
-        po.setBrandId(vo.getBrandId());
+        po.setBrandId(StringUtils.trimToNull(vo.getBrandId()));
         po.setBrandName(dictFeign.getNameById(vo.getBrandId()));
-        po.setCategory2Id(vo.getCategory2Id());
+        po.setCategory2Id(StringUtils.trimToNull(vo.getCategory2Id()));
         po.setCategory2Name(dictFeign.getNameById(vo.getCategory2Id()));
-        po.setCategoryId(vo.getCategoryId());
+        po.setCategoryId(StringUtils.trimToNull(vo.getCategoryId()));
         po.setCategoryName(dictFeign.getNameById(vo.getCategoryId()));
-        po.setPatternId(vo.getPatternId());
+        po.setPatternId(StringUtils.trimToNull(vo.getPatternId()));
         po.setPatternName(dictFeign.getNameById(vo.getPatternId()));
-        po.setSeasonId(vo.getSeasonId());
+        po.setSeasonId(StringUtils.trimToNull(vo.getSeasonId()));
         po.setSeasonName(dictFeign.getNameById(vo.getSeasonId()));
-        po.setSeriesId(vo.getSeriesId());
+        po.setSeriesId(StringUtils.trimToNull(vo.getSeriesId()));
         po.setSeriesName(dictFeign.getNameById(vo.getSeriesId()));
-        po.setSizeGroupId(vo.getSizeGroupId());
+        po.setSizeGroupId(StringUtils.trimToNull(vo.getSizeGroupId()));
         po.setSizeGroupName(dictFeign.getNameById(vo.getSizeGroupId()));
-        po.setYearId(vo.getYearId());
+        po.setYearId(StringUtils.trimToNull(vo.getYearId()));
         po.setYearName(dictFeign.getNameById(vo.getYearId()));
-        po.setSupplierId(vo.getSupplierId());
+        po.setSupplierId(StringUtils.trimToNull(vo.getSupplierId()));
         po.setSupplierCode(supplierFeign.getCodeById(vo.getSupplierId()));
         po.setSupplierName(supplierFeign.getNameById(vo.getSupplierId()));
-        po.setStyleId(vo.getStyleId());
+        po.setStyleId(StringUtils.trimToNull(vo.getStyleId()));
         po.setStyleName(dictFeign.getNameById(vo.getStyleId()));
-        po.setSexId(vo.getSexId());
+        po.setSexId(StringUtils.trimToNull(vo.getSexId()));
         po.setSexName(dictFeign.getNameById(vo.getSexId()));
-        po.setGoodsGroupId(vo.getGoodsGroupId());
+        po.setGoodsGroupId(StringUtils.trimToNull(vo.getGoodsGroupId()));
         po.setGoodsGroupName(dictFeign.getNameById(vo.getGoodsGroupId()));
         po.setTagPrice1(vo.getTagPrice1());
         goodsDao.save(po);
@@ -256,7 +271,7 @@ public class GoodsService {
      *
      * @param vo
      */
-    public void delete(BaseDeleteVo vo) {
+    public void delete(BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
             this.deleteById(id);
         }
@@ -267,8 +282,23 @@ public class GoodsService {
      *
      * @param id
      */
-    public void deleteById(String id) {
-        //查询货品/渠道引用情况 TODO
+    public void deleteById(String id) throws MessageException {
+        //单据引用
+        Map<String, BaseBillGoodsDao> beans = context.getBeansOfType(BaseBillGoodsDao.class);
+        for (String beanName : beans.keySet()) {
+            if (beans.get(beanName).countByGoodsId(id) > 0L) {
+                throw new MessageException("数据已经被引用，无法删除");
+            }
+        }
+        //POS
+        if (posCashDetailDao.countByGoodsId(id) > 0L) {
+            throw new MessageException("数据已经被引用，无法删除");
+        }
+        //条形码
+        if (barCodeDao.countByGoodsId(id) > 0L) {
+            throw new MessageException("数据已经被引用，无法删除");
+        }
+        //促销活动
         goodsColorDao.deleteByGoodsId(id);
         goodsDao.deleteById(id);
     }
@@ -294,7 +324,6 @@ public class GoodsService {
      * @param file
      * @param userSessionBo
      */
-    @Async
     public void updateGoods(MultipartFile file, UserSessionBo userSessionBo) {
         ValueOperations operations = redisTemplate.opsForValue();
         LocalDateTime startTime = LocalDateTime.now();
@@ -481,18 +510,17 @@ public class GoodsService {
                 goodsColorDao.saveAll(goodsColorList);
                 operations.set(userSessionBo.getId() + ":upload:goods", new BaseUploadMessage(1, TimeUtil.useTime(startTime)), 10L, TimeUnit.MINUTES);
             } else {
-                try (FileOutputStream outputStream = new FileOutputStream(erpFileTempUrl + "/" + userSessionBo.getId() + ".xlsx")) {
+                try (FileOutputStream outputStream = new FileOutputStream(erpFileTempUrl + "/" + userSessionBo.getToken() + ".xlsx")) {
                     workbook.write(outputStream);
                     outputStream.flush();
-                    operations.set(userSessionBo.getId() + ":upload:goods", new BaseUploadMessage(userSessionBo.getId() + ".xlsx", -1, TimeUtil.useTime(startTime)), 10L, TimeUnit.MINUTES);
+                    operations.set(userSessionBo.getId() + ":upload:goods", new BaseUploadMessage(userSessionBo.getToken() + ".xlsx", -1, TimeUtil.useTime(startTime)), 10L, TimeUnit.MINUTES);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
+            operations.set(userSessionBo.getId() + ":upload:barcode", new BaseUploadMessage(-1, TimeUtil.useTime(startTime), e.getMessage()), 10L, TimeUnit.MINUTES);
             e.printStackTrace();
-        } finally {
-//            operations.set(userSessionBo.getId() + ":upload:goods", "", 1L);
         }
     }
 
@@ -562,6 +590,9 @@ public class GoodsService {
             }
             if (StringUtils.isNoneBlank(vo.getSupplierName())) {
                 predicates.add(criteriaBuilder.equal(root.get("supplierName"), vo.getSupplierName()));
+            }
+            if (StringUtils.isNoneBlank(vo.getGoodsGroupId())) {
+                predicates.add(criteriaBuilder.equal(root.get("goodsGroupId"), vo.getGoodsGroupId()));
             }
             return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
         });

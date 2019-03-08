@@ -22,4 +22,7 @@ public interface PosCashDao extends JpaRepository<PosCashPo, String>, JpaSpecifi
      */
     PosCashPo findByCode(String code);
 
+
+    Long countByChannelId(String channelId);
+
 }

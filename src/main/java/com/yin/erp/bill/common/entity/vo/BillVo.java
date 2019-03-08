@@ -30,12 +30,21 @@ public class BillVo extends BasePageVo {
      */
     private String code;
 
+    /**
+     * 手动单号
+     */
+    private String manualCode;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private LocalDate billDate;
 
     private String parentBillId;
 
     private String parentBillCode;
+
+    private String grandParentBillId;
+
+    private String grandParentBillCode;
 
     private String supplierId;
 
@@ -67,6 +76,8 @@ public class BillVo extends BasePageVo {
 
     private Integer totalCount;
 
+    private Integer totalQuotedCount;
+
     private String status;
 
     @NotNull(message = "请输入货品")
@@ -84,6 +95,11 @@ public class BillVo extends BasePageVo {
     private String createUserName;
 
     private String auditUserName;
+
+    /**
+     * 盘点-盘次
+     */
+    private Integer times;
 
 
     /**

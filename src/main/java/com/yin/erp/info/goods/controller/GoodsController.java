@@ -109,7 +109,7 @@ public class GoodsController {
      * @return
      */
     @PostMapping(value = "delete")
-    public BaseJson logout(@RequestBody BaseDeleteVo vo) {
+    public BaseJson delete(@RequestBody BaseDeleteVo vo) throws Exception{
         goodsService.delete(vo);
         return BaseJson.getSuccess("删除成功");
     }
@@ -133,7 +133,7 @@ public class GoodsController {
      * @return
      */
     @PostMapping(value = "/upload_goods")
-    public BaseJson updateGoods(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+    public BaseJson updateGoods(@RequestParam("file") MultipartFile file, HttpServletRequest request) throws Exception{
         goodsService.updateGoods(file, userService.getUserSession(request));
         return BaseJson.getSuccess("文件上传成功");
     }

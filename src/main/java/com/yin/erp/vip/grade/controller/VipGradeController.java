@@ -78,7 +78,7 @@ public class VipGradeController {
      * @throws MessageException
      */
     @PostMapping(value = "delete")
-    public BaseJson save(@RequestBody BaseDeleteVo vo) throws MessageException {
+    public BaseJson delete(@RequestBody BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
             vipGradeDao.deleteById(id);
         }

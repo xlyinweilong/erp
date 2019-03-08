@@ -5,6 +5,7 @@ import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.info.employ.dao.EmployDao;
 import com.yin.erp.info.employ.entity.po.EmployPo;
 import com.yin.erp.info.employ.entity.vo.EmployVo;
+import com.yin.erp.pos.cash.dao.PosCashDetailDao;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -29,6 +30,8 @@ public class EmployService {
 
     @Autowired
     private EmployDao employDao;
+    @Autowired
+    private PosCashDetailDao posCashDetailDao;
 
     /**
      * 保存
@@ -93,9 +96,12 @@ public class EmployService {
      *
      * @param vo
      */
-    public void delete(BaseDeleteVo vo) {
+    public void delete(BaseDeleteVo vo) throws MessageException{
         for (String id : vo.getIds()) {
-            //查询货品/渠道引用情况 TODO
+            //POS
+            if (posCashDetailDao.countByEmployId(id) > 0L) {
+                throw new MessageException("数据已经被引用，无法删除");
+            }
             employDao.deleteById(id);
         }
     }

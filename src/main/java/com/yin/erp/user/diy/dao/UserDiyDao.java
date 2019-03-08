@@ -1,7 +1,7 @@
-package com.yin.erp.pos.cash.dao;
+package com.yin.erp.user.diy.dao;
 
 
-import com.yin.erp.pos.cash.entity.po.UserSaleDiyPo;
+import com.yin.erp.user.diy.entity.po.UserDiyPo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -12,12 +12,12 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * 销售偏好
+ * 用户偏好
  *
  * @author yin
  */
 @Repository
-public interface UserSaleDiyDao extends JpaRepository<UserSaleDiyPo, String>, JpaSpecificationExecutor {
+public interface UserDiyDao extends JpaRepository<UserDiyPo, String>, JpaSpecificationExecutor {
 
     /**
      * 删除用户的偏好
@@ -26,8 +26,8 @@ public interface UserSaleDiyDao extends JpaRepository<UserSaleDiyPo, String>, Jp
      * @return
      */
     @Modifying
-    @Query("delete from UserSaleDiyPo t where t.userId = :userId")
-    int deleteAllByUserId(@Param("userId") String userId);
+    @Query("delete from UserDiyPo t where t.userId = :userId AND type = :type")
+    int deleteAllByUserIdAndType(@Param("userId") String userId,@Param("type") String type);
 
     /**
      * 查询用户的偏好
@@ -35,6 +35,6 @@ public interface UserSaleDiyDao extends JpaRepository<UserSaleDiyPo, String>, Jp
      * @param userId
      * @return
      */
-    @Query("select t.saleKey from UserSaleDiyPo t where t.userId = :userId")
-    List<String> findSaleKeyByUserId(@Param("userId") String userId);
+    @Query("select t.key from UserDiyPo t where t.userId = :userId AND t.type = :type")
+    List<String> findSaleKeyByUserIdAndType(@Param("userId") String userId,@Param("type") String type);
 }

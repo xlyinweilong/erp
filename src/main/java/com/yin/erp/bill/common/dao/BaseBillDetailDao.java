@@ -31,4 +31,12 @@ public interface BaseBillDetailDao<T, String> extends JpaRepository<T, String>, 
      * @return
      */
     List<BillDetailPo> findByBillId(String billId);
+
+    /**
+     * 查询数量
+     *
+     * @param goodsSizeId
+     * @return
+     */
+    Long countByGoodsSizeId(String goodsSizeId);
 }

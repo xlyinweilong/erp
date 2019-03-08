@@ -8,6 +8,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import java.util.Objects;
 
 /**
  * 条形码资料
@@ -47,5 +48,18 @@ public class BarCodePo extends BasePo {
     @Column(name = "goods_size_name")
     private String goodsSizeName;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        BarCodePo barCodePo = (BarCodePo) o;
+        return Objects.equals(code, barCodePo.code);
+    }
 
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(super.hashCode(), code);
+    }
 }

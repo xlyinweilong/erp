@@ -1,12 +1,11 @@
 package com.yin.erp.activity.entity.po;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yin.erp.base.entity.po.BaseDataPo;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.math.BigDecimal;
 
 /**
@@ -56,6 +55,8 @@ public class ActivityRulePo extends BaseDataPo {
     @Column(name = "give_count")
     private Integer giveCount;
 
-
-
+    @JsonIgnore
+    @ManyToOne(cascade = {}, optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "activity_Id", updatable = false, insertable = false)
+    private ActivityPo activityPo;
 }

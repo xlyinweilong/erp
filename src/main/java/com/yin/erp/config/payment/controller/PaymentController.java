@@ -5,6 +5,7 @@ import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.config.payment.dao.PaymentDao;
 import com.yin.erp.config.payment.entity.po.PaymentPo;
+import com.yin.erp.pos.cash.dao.PosCashPaymentDao;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -25,6 +26,8 @@ public class PaymentController {
 
     @Autowired
     private PaymentDao paymentDao;
+    @Autowired
+    private PosCashPaymentDao posCashPaymentDao;
 
     /**
      * 保存
@@ -67,6 +70,13 @@ public class PaymentController {
     @PostMapping(value = "delete")
     public BaseJson delete(@RequestBody BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
+            PaymentPo paymentPo = paymentDao.findById(id).get();
+            if (paymentPo.getSys() == 1) {
+                throw new MessageException("系统默认无法删除");
+            }
+            if (posCashPaymentDao.countByPaymentId(id) > 0L) {
+                throw new MessageException("数据被引用，无法删除");
+            }
             paymentDao.deleteById(id);
         }
         return BaseJson.getSuccess();

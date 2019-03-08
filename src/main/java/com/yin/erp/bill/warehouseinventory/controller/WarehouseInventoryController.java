@@ -4,11 +4,12 @@ package com.yin.erp.bill.warehouseinventory.controller;
 import com.yin.erp.base.controller.BaseJson;
 import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.base.exceptions.MessageException;
-import com.yin.erp.bill.warehouseinventory.service.WarehouseInventoryService;
 import com.yin.erp.bill.common.entity.vo.BillVo;
 import com.yin.erp.bill.common.entity.vo.in.BaseAuditVo;
 import com.yin.erp.bill.common.entity.vo.in.BaseBillExportVo;
+import com.yin.erp.bill.common.entity.vo.in.BillInventoryVo;
 import com.yin.erp.bill.common.entity.vo.in.SearchBillVo;
+import com.yin.erp.bill.warehouseinventory.service.WarehouseInventoryService;
 import com.yin.erp.user.user.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -61,7 +62,7 @@ public class WarehouseInventoryController {
      * @return
      */
     @PostMapping(value = "delete")
-    public BaseJson delete(@RequestBody BaseDeleteVo vo) {
+    public BaseJson delete(@RequestBody BaseDeleteVo vo) throws MessageException {
         warehouseInventoryService.delete(vo);
         return BaseJson.getSuccess("删除成功");
     }
@@ -125,6 +126,30 @@ public class WarehouseInventoryController {
     public BaseJson updateBill(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
         warehouseInventoryService.uploadBill(file, userService.getUserSession(request));
         return BaseJson.getSuccess("文件上传成功");
+    }
+
+
+    /**
+     * 查询可以盘点的时间
+     *
+     * @throws Exception
+     */
+    @GetMapping(value = "load_inventory_date_list")
+    public BaseJson loadInventoryDateList(String warehouseId) throws Exception {
+        return BaseJson.getSuccess(warehouseInventoryService.loadInventoryDateList(warehouseId));
+    }
+
+
+    /**
+     * 盘点
+     *
+     * @param vo
+     * @return
+     */
+    @PostMapping(value = "inventory")
+    public BaseJson inventory(@Validated @RequestBody BillInventoryVo vo, HttpServletRequest request) throws Exception {
+        warehouseInventoryService.inventory(vo, userService.getUserSession(request));
+        return BaseJson.getSuccess();
     }
 
 

@@ -24,4 +24,12 @@ public interface PosCashPaymentDao extends JpaRepository<PosCashPaymentPo, Strin
      * @return
      */
     List<PosCashPaymentPo> findAllByBillId(String billId);
+
+    /**
+     * 查询数量
+     *
+     * @param paymentId
+     * @return
+     */
+    Long countByPaymentId(String paymentId);
 }

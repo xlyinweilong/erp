@@ -1,7 +1,5 @@
 package com.yin.erp.bill.supplier2warehouse.entity.po;
 
-import com.yin.erp.bill.channel2supplier.entity.po.Channel2SupplierDetailPo;
-import com.yin.erp.bill.channel2supplier.entity.po.Channel2SupplierGoodsPo;
 import com.yin.erp.bill.common.entity.po.BillDetailPo;
 import com.yin.erp.bill.common.entity.po.BillGoodsPo;
 import com.yin.erp.bill.common.entity.po.BillPo;
@@ -23,6 +21,15 @@ import javax.persistence.UniqueConstraint;
 @Getter
 @Setter
 public class Supplier2WarehousePo extends BillPo {
+
+    /**
+     * 上级单据
+     */
+    @Column(name = "parent_bill_id")
+    private String parentBillId;
+
+    @Column(name = "parent_bill_code")
+    private String parentBillCode;
 
     /**
      * 供应商

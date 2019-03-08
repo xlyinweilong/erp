@@ -18,5 +18,4 @@ import javax.persistence.Table;
 @Setter
 public class WarehouseInventoryDetailPo extends BillDetailPo {
 
-
 }

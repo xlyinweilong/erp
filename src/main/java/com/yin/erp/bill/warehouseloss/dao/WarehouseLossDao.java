@@ -1,10 +1,13 @@
 package com.yin.erp.bill.warehouseloss.dao;
 
 
-import com.yin.erp.bill.common.dao.BaseBillDao;
+import com.yin.erp.bill.common.dao.warehouse.BaseBillWarehouseDao;
 import com.yin.erp.bill.warehouseloss.entity.po.WarehouseLossPo;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 
 /**
@@ -13,6 +16,9 @@ import javax.annotation.Resource;
  * @author yin
  */
 @Resource
-public interface WarehouseLossDao extends BaseBillDao<WarehouseLossPo, String> {
+public interface WarehouseLossDao extends BaseBillWarehouseDao<WarehouseLossPo, String> {
+
+    @Query("SELECT t from WarehouseLossPo t where t.parentBillId = :parentBillId")
+    List<WarehouseLossPo> findAllByParentBillId(@Param("parentBillId") String parentId);
 
 }

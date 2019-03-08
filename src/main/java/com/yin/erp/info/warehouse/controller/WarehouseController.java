@@ -67,7 +67,7 @@ public class WarehouseController {
      * @return
      */
     @RequestMapping(value = "delete", method = RequestMethod.POST)
-    public BaseJson logout(@RequestBody BaseDeleteVo vo) {
+    public BaseJson logout(@RequestBody BaseDeleteVo vo) throws Exception{
         warehouseService.delete(vo);
         return BaseJson.getSuccess("删除成功");
     }

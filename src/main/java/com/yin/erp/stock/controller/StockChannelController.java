@@ -11,7 +11,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -64,6 +63,12 @@ public class StockChannelController {
             if (StringUtils.isNotBlank(stockVo.getChannelCode())) {
                 predicates.add(criteriaBuilder.equal(root.get("channelCode"), stockVo.getChannelCode()));
             }
+            if (StringUtils.isNotBlank(stockVo.getChannelId())) {
+                predicates.add(criteriaBuilder.equal(root.get("channelId"), stockVo.getChannelId()));
+            }
+            if (StringUtils.isNotBlank(stockVo.getGoodsId())) {
+                predicates.add(criteriaBuilder.equal(root.get("goodsId"), stockVo.getGoodsId()));
+            }
             if (StringUtils.isNotBlank(stockVo.getGoodsCode())) {
                 predicates.add(criteriaBuilder.equal(root.get("goodsCode"), stockVo.getGoodsCode()));
             }
@@ -110,45 +115,42 @@ public class StockChannelController {
         CriteriaQuery<Integer> query = builder.createQuery(Integer.class);
         Root<StockChannelPo> root = query.from(StockChannelPo.class);
         query.select(builder.sum(root.get("stockCount")));
-        query.where((new Specification<StockChannelPo>() {
-            @Override
-            public Predicate toPredicate(Root<StockChannelPo> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
-                Predicate predicate = criteriaBuilder.conjunction();
-                List<Predicate> predicates = new ArrayList<>();
-                predicates.add(criteriaBuilder.notEqual(root.get("stockCount"), 0));
-                if (StringUtils.isNotBlank(stockVo.getChannelCode())) {
-                    predicates.add(criteriaBuilder.equal(root.get("channelCode"), stockVo.getChannelCode()));
-                }
-                if (StringUtils.isNotBlank(stockVo.getGoodsCode())) {
-                    predicates.add(criteriaBuilder.equal(root.get("goodsCode"), stockVo.getGoodsCode()));
-                }
-                if (StringUtils.isNotBlank(stockVo.getGoodsColorCode())) {
-                    predicates.add(criteriaBuilder.equal(root.get("goodsColorCode"), stockVo.getGoodsColorCode()));
-                }
-                if (StringUtils.isNotBlank(stockVo.getGoodsColorName())) {
-                    predicates.add(criteriaBuilder.equal(root.get("goodsColorName"), stockVo.getGoodsColorName()));
-                }
-                if (StringUtils.isNotBlank(stockVo.getGoodsSizeName())) {
-                    predicates.add(criteriaBuilder.equal(root.get("goodsSizeName"), stockVo.getGoodsSizeName()));
-                }
-                if (StringUtils.isNotBlank(stockVo.getGoodsSizeName())) {
-                    predicates.add(criteriaBuilder.equal(root.get("goodsSizeName"), stockVo.getGoodsSizeName()));
-                }
-                Predicate p1 = criteriaBuilder.isNull(root.get("goodsGroupId"));
-                if (!user.getGoodsGroupIds().isEmpty()) {
-                    predicates.add(criteriaBuilder.or(p1, criteriaBuilder.in(root.get("goodsGroupId")).value(user.getGoodsGroupIds())));
-                } else {
-                    predicates.add(p1);
-                }
-                Predicate p2 = criteriaBuilder.isNull(root.get("channelGroupId"));
-                if (!user.getChannelGroupIds().isEmpty()) {
-                    predicates.add(criteriaBuilder.or(p2, criteriaBuilder.in(root.get("channelGroupId")).value(user.getChannelGroupIds())));
-                } else {
-                    predicates.add(p2);
-                }
-                return predicate;
-            }
-        }).toPredicate(root, query, builder));
+        List<Predicate> predicateList = new ArrayList<>();
+        predicateList.add(builder.notEqual(root.get("stockCount"), 0));
+        if (StringUtils.isNotBlank(stockVo.getChannelCode())) {
+            predicateList.add(builder.equal(root.get("channelCode"), stockVo.getChannelCode()));
+        }
+        if (StringUtils.isNotBlank(stockVo.getGoodsCode())) {
+            predicateList.add(builder.equal(root.get("goodsCode"), stockVo.getGoodsCode()));
+        }
+        if (StringUtils.isNotBlank(stockVo.getGoodsColorCode())) {
+            predicateList.add(builder.equal(root.get("goodsColorCode"), stockVo.getGoodsColorCode()));
+        }
+        if (StringUtils.isNotBlank(stockVo.getGoodsColorName())) {
+            predicateList.add(builder.equal(root.get("goodsColorName"), stockVo.getGoodsColorName()));
+        }
+        if (StringUtils.isNotBlank(stockVo.getGoodsSizeName())) {
+            predicateList.add(builder.equal(root.get("goodsSizeName"), stockVo.getGoodsSizeName()));
+        }
+        if (StringUtils.isNotBlank(stockVo.getGoodsSizeName())) {
+            predicateList.add(builder.equal(root.get("goodsSizeName"), stockVo.getGoodsSizeName()));
+        }
+        Predicate p1 = builder.isNull(root.get("goodsGroupId"));
+        if (!user.getGoodsGroupIds().isEmpty()) {
+            predicateList.add(builder.or(p1, builder.in(root.get("goodsGroupId")).value(user.getGoodsGroupIds())));
+        } else {
+            predicateList.add(p1);
+        }
+        Predicate p2 = builder.isNull(root.get("channelGroupId"));
+        if (!user.getChannelGroupIds().isEmpty()) {
+            predicateList.add(builder.or(p2, builder.in(root.get("channelGroupId")).value(user.getChannelGroupIds())));
+        } else {
+            predicateList.add(p2);
+        }
+        Predicate[] predicates = new Predicate[predicateList.size()];
+        predicates = predicateList.toArray(predicates);
+        query.where(predicates);
+
         Integer i = em.createQuery(query).getSingleResult();
         i = i == null ? 0 : i;
         return BaseJson.getSuccess(i);

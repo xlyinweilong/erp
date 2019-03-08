@@ -1,9 +1,13 @@
 package com.yin.erp.user.user.entity.po;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.yin.erp.base.entity.po.BasePo;
+import com.yin.erp.user.diy.entity.po.UserDiyPo;
 import lombok.Getter;
 import lombok.Setter;
-import com.yin.erp.base.entity.po.BasePo;
+
 import javax.persistence.*;
+import java.util.List;
 
 /**
  * 用户表
@@ -26,5 +30,8 @@ public class UserPo extends BasePo{
     @Column(name="role_id")
     private String roleId;
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "userPo", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<UserDiyPo> userDiyPo;
 
 }

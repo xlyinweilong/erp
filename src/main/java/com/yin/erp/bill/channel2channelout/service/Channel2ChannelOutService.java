@@ -5,32 +5,34 @@ import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.base.entity.vo.out.BackPageVo;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
-import com.yin.erp.base.utils.ExcelReadUtil;
 import com.yin.erp.bill.channel2channelin.service.Channel2ChannelInService;
 import com.yin.erp.bill.channel2channelout.dao.Channel2ChannelOutDao;
 import com.yin.erp.bill.channel2channelout.dao.Channel2ChannelOutDetailDao;
 import com.yin.erp.bill.channel2channelout.dao.Channel2ChannelOutGoodsDao;
 import com.yin.erp.bill.channel2channelout.entity.po.Channel2ChannelOutPo;
 import com.yin.erp.bill.common.entity.po.BillDetailPo;
-import com.yin.erp.bill.common.entity.po.BillGoodsPo;
 import com.yin.erp.bill.common.entity.po.BillPo;
 import com.yin.erp.bill.common.entity.vo.BillVo;
-import com.yin.erp.bill.common.entity.vo.in.*;
+import com.yin.erp.bill.common.entity.vo.in.BaseAuditVo;
+import com.yin.erp.bill.common.entity.vo.in.BaseBillExportVo;
+import com.yin.erp.bill.common.entity.vo.in.BillGoodsVo;
+import com.yin.erp.bill.common.entity.vo.in.SearchBillVo;
 import com.yin.erp.bill.common.enums.BillStatusEnum;
 import com.yin.erp.bill.common.service.BillCommonService;
 import com.yin.erp.bill.common.service.BillService;
+import com.yin.erp.bill.noticechannel2channelout.dao.NoticeChannel2ChannelOutDao;
+import com.yin.erp.bill.noticechannel2channelout.dao.NoticeChannel2ChannelOutDetailDao;
+import com.yin.erp.bill.noticechannel2channelout.dao.NoticeChannel2ChannelOutGoodsDao;
 import com.yin.erp.config.sysconfig.service.ConfigService;
 import com.yin.erp.stock.service.StockChannelService;
-import org.apache.poi.ss.usermodel.Row;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -49,6 +51,12 @@ public class Channel2ChannelOutService extends BillService {
     private Channel2ChannelOutGoodsDao channel2ChannelOutGoodsDao;
     @Autowired
     private Channel2ChannelOutDetailDao channel2ChannelOutDetailDao;
+    @Autowired
+    private NoticeChannel2ChannelOutDao noticeChannel2ChannelOutDao;
+    @Autowired
+    private NoticeChannel2ChannelOutGoodsDao noticeChannel2ChannelOutGoodsDao;
+    @Autowired
+    private NoticeChannel2ChannelOutDetailDao noticeChannel2ChannelOutDetailDao;
     @Autowired
     private StockChannelService stockChannelService;
     @Value("${erp.file.temp.url}")
@@ -69,7 +77,7 @@ public class Channel2ChannelOutService extends BillService {
      */
     @Override
     public BackPageVo<BillVo> findBillPage(SearchBillVo vo) throws MessageException {
-        return billCommonService.findBillPage(vo, channel2ChannelOutDao, new String[]{"channelName", "channelCode", "toChannelName", "toChannelCode"});
+        return billCommonService.findBillPage(vo, channel2ChannelOutDao, new String[]{"channelName", "channelCode", "toChannelName", "toChannelCode", "parentBillCode"});
     }
 
     /**
@@ -80,7 +88,12 @@ public class Channel2ChannelOutService extends BillService {
      */
     @Override
     public BillPo save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
-        return billCommonService.save(new Channel2ChannelOutPo(), vo, userSessionBo, channel2ChannelOutDao, channel2ChannelOutGoodsDao, channel2ChannelOutDetailDao, "QDDC");
+        //如果是修改，删除原来的上游引用
+        billCommonService.changeOneToOneParentStatus(vo.getId(), BillStatusEnum.AUDITED, channel2ChannelOutDao, noticeChannel2ChannelOutDao, null);
+        BillPo billPo = billCommonService.save(new Channel2ChannelOutPo(), vo, userSessionBo, channel2ChannelOutDao, channel2ChannelOutGoodsDao, channel2ChannelOutDetailDao, "QDDC", this.findParentGoodsList(vo.getParentBillId()), noticeChannel2ChannelOutDao);
+        //修改上游单据
+        billCommonService.changeOneToOneParentStatus(billPo.getId(), BillStatusEnum.QUOTE, channel2ChannelOutDao, noticeChannel2ChannelOutDao, billPo.getId());
+        return billPo;
     }
 
 
@@ -91,6 +104,8 @@ public class Channel2ChannelOutService extends BillService {
      */
     public void delete(BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
+            //删除上游引用
+            billCommonService.changeOneToOneParentStatus(id, BillStatusEnum.AUDITED, channel2ChannelOutDao, noticeChannel2ChannelOutDao, null);
             billCommonService.deleteById(id, channel2ChannelOutDao, channel2ChannelOutGoodsDao, channel2ChannelOutDetailDao);
         }
     }
@@ -100,6 +115,7 @@ public class Channel2ChannelOutService extends BillService {
      *
      * @param vo
      */
+    @Override
     public void audit(BaseAuditVo vo, UserSessionBo userSessionBo) throws MessageException {
         Date d = new Date();
         for (String id : vo.getIds()) {
@@ -109,46 +125,11 @@ public class Channel2ChannelOutService extends BillService {
                 for (BillDetailPo detail : channel2ChannelOutDetailDao.findByBillId(id)) {
                     stockChannelService.minus(detail, po.getChannelId());
                 }
+                //修改上游单据状态
+                billCommonService.changeOneToOneParentStatus(id, BillStatusEnum.COMPLETE, channel2ChannelOutDao, noticeChannel2ChannelOutDao);
                 //自动生成调入
                 if (configService.getChannelConfigValue("channel_qddc_auto_qddu", po.getToChannelId()) == 0) {
-                    BillVo billVo = new BillVo();
-                    billVo.setStatus(BillStatusEnum.PENDING.name());
-                    billVo.setBillDate(po.getBillDate());
-                    billVo.setParentBillCode(po.getCode());
-                    billVo.setParentBillId(po.getId());
-                    billVo.setChannelName(po.getChannelName());
-                    billVo.setChannelCode(po.getChannelCode());
-                    billVo.setChannelId(po.getChannelId());
-                    billVo.setToChannelCode(po.getToChannelCode());
-                    billVo.setToChannelId(po.getToChannelId());
-                    billVo.setToChannelName(po.getToChannelName());
-                    List<BillGoodsVo> billGoodsVoList = new ArrayList<>();
-                    List<BillGoodsPo> goodsListPo = channel2ChannelOutGoodsDao.findByBillId(po.getId());
-                    List<BillDetailPo> detailListPo = channel2ChannelOutDetailDao.findByBillId(po.getId());
-                    for (BillGoodsPo billGoodsPo : goodsListPo) {
-                        BillGoodsVo billGoodsVo = new BillGoodsVo();
-                        billGoodsVo.setGoodsCode(billGoodsPo.getGoodsCode());
-                        billGoodsVo.setTagPrice(billGoodsPo.getTagPrice());
-                        billGoodsVo.setPrice(billGoodsPo.getPrice());
-                        billGoodsVo.setGoodsName(billGoodsPo.getGoodsName());
-                        billGoodsVo.setGoodsId(billGoodsPo.getGoodsId());
-                        List<BillDetailVo> billDetailVoList = new ArrayList<>();
-                        detailListPo.stream().filter(dp -> dp.getGoodsId().equals(billGoodsPo.getGoodsId())).forEach(dp -> {
-                            BillDetailVo billDetailVo = new BillDetailVo();
-                            billDetailVo.setBillCount(dp.getBillCount());
-                            billDetailVo.setSizeId(dp.getGoodsSizeId());
-                            billDetailVo.setColorId(dp.getGoodsColorId());
-                            billDetailVoList.add(billDetailVo);
-                        });
-                        billGoodsVo.setDetail(billDetailVoList);
-                        billGoodsVoList.add(billGoodsVo);
-                    }
-                    billVo.setGoodsList(billGoodsVoList);
-                    BillPo billPo = channel2ChannelInService.save(billVo, userSessionBo);
-                    BaseAuditVo baseAuditVo = new BaseAuditVo();
-                    baseAuditVo.setIds(Arrays.asList(billPo.getId()));
-                    baseAuditVo.setStatus(BillStatusEnum.AUDITED.name());
-                    channel2ChannelInService.audit(baseAuditVo, userSessionBo);
+                    billCommonService.billCreateSubBill(po, channel2ChannelOutGoodsDao, channel2ChannelOutDetailDao, channel2ChannelInService, userSessionBo);
                 }
             }
         }
@@ -167,6 +148,8 @@ public class Channel2ChannelOutService extends BillService {
             for (BillDetailPo detail : channel2ChannelOutDetailDao.findByBillId(id)) {
                 stockChannelService.add(detail, po.getChannelId());
             }
+            //修改上游单据状态
+            billCommonService.changeOneToOneParentStatus(id, BillStatusEnum.QUOTE, channel2ChannelOutDao, noticeChannel2ChannelOutDao);
         }
     }
 
@@ -187,17 +170,7 @@ public class Channel2ChannelOutService extends BillService {
      * @param userSessionBo
      */
     public void uploadBill(MultipartFile file, UserSessionBo userSessionBo) {
-        billCommonService.uploadBill(file, userSessionBo, this, "c2s");
-    }
-
-    @Override
-    public String uploadBillChannelCode(Row row) throws MessageException {
-        return ExcelReadUtil.getString(row.getCell(1));
-    }
-
-    @Override
-    public String uploadBillSupplierCode(Row row) throws MessageException {
-        return ExcelReadUtil.getString(row.getCell(2));
+        billCommonService.uploadBill(file, userSessionBo, this, "c2cout");
     }
 
     /**
@@ -208,7 +181,28 @@ public class Channel2ChannelOutService extends BillService {
      * @throws Exception
      */
     public void export(BaseBillExportVo vo, HttpServletResponse response) throws Exception {
-        billCommonService.export(vo, response, this, channel2ChannelOutGoodsDao, channel2ChannelOutDetailDao, "channel", "supplier", false);
+        billCommonService.export(vo, response, this, channel2ChannelOutGoodsDao, channel2ChannelOutDetailDao, "channel", "toChannel", true);
+    }
+
+    /**
+     * 查询上级单据仓库出货
+     *
+     * @param code
+     * @return
+     */
+    public Page<BillPo> findParentBill(String code) {
+        return billCommonService.findParentBill(code, noticeChannel2ChannelOutDao, new String[]{"channelName", "channelCode", "toChannelName", "toChannelCode"});
+    }
+
+    /**
+     * 查询上级单据明细仓库出货
+     *
+     * @param id
+     * @return
+     * @throws MessageException
+     */
+    public List<BillGoodsVo> findParentGoodsList(String id) throws MessageException {
+        return billCommonService.findParentGoodsList(id, noticeChannel2ChannelOutGoodsDao, noticeChannel2ChannelOutDetailDao);
     }
 
 }

@@ -1,15 +1,15 @@
 package com.yin.erp.activity.entity.po;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yin.erp.base.entity.po.BasePo;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 促销活动
@@ -108,5 +108,33 @@ public class ActivityPo extends BasePo {
 
     @Column(name = "rule_type")
     private String ruleType;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "activityPo", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<ActivityChannelPo> activityChannelPoList;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "activityPo", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<ActivityConditionGoodsPo> activityConditionGoodsPoList;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "activityPo", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<ActivityGoodsPo> activityGoodsPoList;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "activityPo", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<ActivityRuleGoodsPo> activityRuleGoodsPoList;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "activityPo", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<ActivityRulePo> activityRulePoList;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "activityPo", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<ActivityRuleRangePo> activityRuleRangePoList;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "activityPo", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<ActivityVipPo> activityVipPoList;
 
 }

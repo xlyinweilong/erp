@@ -17,7 +17,7 @@ import javax.persistence.Table;
 @Setter
 public class PowerPo extends BaseDataPo {
 
-    @Column(name="name")
+    @Column(name = "name")
     private String name;
 
     @Column(name = "menu_id")

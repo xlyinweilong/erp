@@ -1,12 +1,11 @@
 package com.yin.erp.user.role.entity.po;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yin.erp.base.entity.po.BaseDataPo;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * 角色菜单按钮权限表
@@ -17,11 +16,16 @@ import javax.persistence.Table;
 @Setter
 public class RolePowerPo extends BaseDataPo {
 
-    @Column(name="role_id")
+    @Column(name = "role_id")
     private String roleId;
 
-    @Column(name="power_id")
+    @Column(name = "power_id")
     private String powerId;
+
+    @JsonIgnore
+    @ManyToOne(cascade = {}, optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id", updatable = false, insertable = false)
+    private RolePo rolePo;
 
     public RolePowerPo() {
     }

@@ -19,11 +19,11 @@ public class LoginUserVo {
     private String token;
 
     @NotBlank
-    @Length(min = 1, max = 50)
+    @Length(min = 1, max = 50, message = "账号长度需要在1到50之间")
     private String username;
 
     @NotBlank
-    @Length(min = 6, max = 30)
+    @Length(min = 6, max = 30, message = "密码长度需要在6到30之间")
     private String password;
 
 }

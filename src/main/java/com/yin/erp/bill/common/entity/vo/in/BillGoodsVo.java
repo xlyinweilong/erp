@@ -37,6 +37,8 @@ public class BillGoodsVo extends BaseVo {
 
     private String goodsName;
 
+    private Integer times;
+
     @NotNull(message = "请输入货品详情数量")
     private List<BillDetailVo> detail;
 

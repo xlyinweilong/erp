@@ -37,7 +37,8 @@ public class BillController {
     @GetMapping(value = "upload_status")
     public BaseJson uploadStatus(HttpServletRequest request, String key) {
         UserSessionBo userSessionBo = userService.getUserSession(request);
-        return BaseJson.getSuccess(redisTemplate.opsForValue().get(userSessionBo.getId() + ":upload:bill:" + key));
+        BaseUploadMessage baseUploadMessage = (BaseUploadMessage) redisTemplate.opsForValue().get(userSessionBo.getId() + ":upload:bill:" + key);
+        return BaseJson.getSuccess(baseUploadMessage == null ? null : baseUploadMessage.getMessage(), baseUploadMessage);
     }
 
     /**

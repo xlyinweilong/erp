@@ -36,16 +36,31 @@ public class BaseUploadMessage implements Serializable {
     private String useTime;
 
     /**
-     * 0正在处理进度，1处理完成，-1处理失败
+     * 0正在处理进度，1处理完成，-1处理失败，2没有任务开始
      */
     private Integer status = 0;
 
+    /**
+     * 错误信息
+     */
+    private String message;
+
     public BaseUploadMessage() {
+    }
+
+    public BaseUploadMessage(int status) {
+        this.status = status;
     }
 
     public BaseUploadMessage(int status, String useTime) {
         this.status = status;
         this.useTime = useTime;
+    }
+
+    public BaseUploadMessage(int status, String useTime, String message) {
+        this.status = status;
+        this.useTime = useTime;
+        this.message = message;
     }
 
     public BaseUploadMessage(String errorUrl, int status, String useTime) {

@@ -5,7 +5,6 @@ import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.base.entity.vo.out.BackPageVo;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
-import com.yin.erp.base.utils.ExcelReadUtil;
 import com.yin.erp.bill.common.entity.po.BillDetailPo;
 import com.yin.erp.bill.common.entity.po.BillPo;
 import com.yin.erp.bill.common.entity.vo.BillVo;
@@ -20,7 +19,6 @@ import com.yin.erp.bill.supplier2channel.dao.Supplier2ChannelDetailDao;
 import com.yin.erp.bill.supplier2channel.dao.Supplier2ChannelGoodsDao;
 import com.yin.erp.bill.supplier2channel.entity.po.Supplier2ChannelPo;
 import com.yin.erp.stock.service.StockChannelService;
-import org.apache.poi.ss.usermodel.Row;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -73,7 +71,7 @@ public class Supplier2ChannelService extends BillService {
      */
     @Override
     public BillPo save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
-        return billCommonService.save(new Supplier2ChannelPo(), vo, userSessionBo, supplier2ChannelDao, supplier2ChannelGoodsDao, supplier2ChannelDetailDao, "CKTH");
+        return billCommonService.save(new Supplier2ChannelPo(), vo, userSessionBo, supplier2ChannelDao, supplier2ChannelGoodsDao, supplier2ChannelDetailDao, "CGSH");
     }
 
 
@@ -93,6 +91,7 @@ public class Supplier2ChannelService extends BillService {
      *
      * @param vo
      */
+    @Override
     public void audit(BaseAuditVo vo, UserSessionBo userSessionBo) throws MessageException {
         Date d = new Date();
         for (String id : vo.getIds()) {
@@ -140,17 +139,6 @@ public class Supplier2ChannelService extends BillService {
      */
     public void uploadBill(MultipartFile file, UserSessionBo userSessionBo) {
         billCommonService.uploadBill(file, userSessionBo, this, "s2c");
-    }
-
-    @Override
-    public String uploadBillSupplierCode(Row row) throws MessageException {
-        return ExcelReadUtil.getString(row.getCell(1));
-    }
-
-
-    @Override
-    public String uploadBillChannelCode(Row row) throws MessageException {
-        return ExcelReadUtil.getString(row.getCell(2));
     }
 
     /**

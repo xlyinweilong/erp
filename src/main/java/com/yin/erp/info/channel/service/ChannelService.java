@@ -3,6 +3,7 @@ package com.yin.erp.info.channel.service;
 import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
+import com.yin.erp.bill.common.dao.channel.BaseBillChannelDao;
 import com.yin.erp.config.sysconfig.dao.ConfigChannelDao;
 import com.yin.erp.config.sysconfig.entity.po.ConfigChannelPo;
 import com.yin.erp.config.sysconfig.entity.po.ConfigPo;
@@ -10,8 +11,10 @@ import com.yin.erp.info.channel.dao.ChannelDao;
 import com.yin.erp.info.channel.entity.po.ChannelPo;
 import com.yin.erp.info.channel.entity.vo.ChannelVo;
 import com.yin.erp.info.dict.feign.DictFeign;
+import com.yin.erp.pos.cash.dao.PosCashDao;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -21,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 渠道服务
@@ -38,6 +42,10 @@ public class ChannelService {
     private DictFeign dictFeign;
     @Autowired
     private ConfigChannelDao configChannelDao;
+    @Autowired
+    private ApplicationContext context;
+    @Autowired
+    private PosCashDao posCashDao;
 
 
     /**
@@ -50,7 +58,6 @@ public class ChannelService {
         ChannelPo po = new ChannelPo();
         if (StringUtils.isNotBlank(vo.getId())) {
             po = channelDao.findById(vo.getId()).get();
-            //发送给队列，全局做数据更新 TODO
         }
         po.setCode(vo.getCode());
         po.setName(vo.getName());
@@ -112,11 +119,22 @@ public class ChannelService {
      *
      * @param vo
      */
-    public void delete(BaseDeleteVo vo) {
+    public void delete(BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
-            //查询货品/渠道引用情况 TODO
+            //单据引用
+            Map<String, BaseBillChannelDao> beans = context.getBeansOfType(BaseBillChannelDao.class);
+            for (String beanName : beans.keySet()) {
+                if (beans.get(beanName).countByChannelId(id) > 0L) {
+                    throw new MessageException("数据已经被引用，无法删除");
+                }
+            }
+            //POS引用
+            if (posCashDao.countByChannelId(id) > 1L) {
+                throw new MessageException("数据已经被引用，无法删除");
+            }
             channelDao.deleteById(id);
             configChannelDao.deleteAllByChannelId(id);
+
         }
     }
 

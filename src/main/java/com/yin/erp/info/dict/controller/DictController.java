@@ -95,7 +95,7 @@ public class DictController {
      * @return
      */
     @PostMapping(value = "delete")
-    public BaseJson logout(@RequestBody DictDeleteVo vo) throws MessageException {
+    public BaseJson delete(@RequestBody DictDeleteVo vo) throws MessageException {
         dictService.delete(vo);
         return BaseJson.getSuccess("删除成功");
     }

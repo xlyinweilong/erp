@@ -68,4 +68,10 @@ public class BillGoodsPo extends BaseDataPo {
     @Column(name = "bill_count")
     private Integer billCount = 0;
 
+    /**
+     * 排序
+     */
+    @Column(name = "bill_order")
+    private Integer billOrder = 0;
+
 }

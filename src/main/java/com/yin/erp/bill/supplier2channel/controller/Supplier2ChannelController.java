@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * 厂家来货
+ * 渠道采购收货
  *
  * @author yin
  */

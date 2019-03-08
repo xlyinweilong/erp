@@ -8,6 +8,7 @@ import com.yin.erp.bill.channelinventory.service.ChannelInventoryService;
 import com.yin.erp.bill.common.entity.vo.BillVo;
 import com.yin.erp.bill.common.entity.vo.in.BaseAuditVo;
 import com.yin.erp.bill.common.entity.vo.in.BaseBillExportVo;
+import com.yin.erp.bill.common.entity.vo.in.BillInventoryVo;
 import com.yin.erp.bill.common.entity.vo.in.SearchBillVo;
 import com.yin.erp.user.user.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +62,7 @@ public class ChannelInventoryController {
      * @return
      */
     @PostMapping(value = "delete")
-    public BaseJson delete(@RequestBody BaseDeleteVo vo) {
+    public BaseJson delete(@RequestBody BaseDeleteVo vo)  throws MessageException{
         channelInventoryService.delete(vo);
         return BaseJson.getSuccess("删除成功");
     }
@@ -125,6 +126,29 @@ public class ChannelInventoryController {
     public BaseJson updateBill(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
         channelInventoryService.uploadBill(file, userService.getUserSession(request));
         return BaseJson.getSuccess("文件上传成功");
+    }
+
+    /**
+     * 查询可以盘点的时间
+     *
+     * @throws Exception
+     */
+    @GetMapping(value = "load_inventory_date_list")
+    public BaseJson loadInventoryDateList(String channelId) throws Exception {
+        return BaseJson.getSuccess(channelInventoryService.loadInventoryDateList(channelId));
+    }
+
+
+    /**
+     * 盘点
+     *
+     * @param vo
+     * @return
+     */
+    @PostMapping(value = "inventory")
+    public BaseJson inventory(@Validated @RequestBody BillInventoryVo vo, HttpServletRequest request) throws Exception {
+        channelInventoryService.inventory(vo, userService.getUserSession(request));
+        return BaseJson.getSuccess();
     }
 
 

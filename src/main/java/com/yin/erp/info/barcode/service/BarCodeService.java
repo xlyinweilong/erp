@@ -1,28 +1,45 @@
 package com.yin.erp.info.barcode.service;
 
 import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
+import com.yin.erp.base.entity.vo.out.BaseUploadMessage;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
+import com.yin.erp.base.upload.UploadValidateService;
 import com.yin.erp.base.utils.CopyUtil;
+import com.yin.erp.base.utils.ExcelReadUtil;
+import com.yin.erp.base.utils.TimeUtil;
 import com.yin.erp.info.barcode.dao.BarCodeDao;
 import com.yin.erp.info.barcode.entity.po.BarCodePo;
 import com.yin.erp.info.barcode.entity.vo.BarCodeVo;
+import com.yin.erp.info.dict.entity.po.DictSizePo;
 import com.yin.erp.info.dict.feign.DictFeign;
 import com.yin.erp.info.goods.dao.GoodsDao;
 import com.yin.erp.info.goods.entity.bo.GoodsBo;
+import com.yin.erp.info.goods.entity.po.GoodsColorPo;
 import com.yin.erp.info.goods.entity.po.GoodsPo;
 import com.yin.erp.info.goods.feign.GoodsFeign;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.criteria.Predicate;
+import java.io.FileOutputStream;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 条形码服务
@@ -42,6 +59,12 @@ public class BarCodeService {
     private GoodsDao goodsDao;
     @Autowired
     private DictFeign dictFeign;
+    @Autowired
+    private RedisTemplate redisTemplate;
+    @Value("${erp.file.temp.url}")
+    private String erpFileTempUrl;
+    @Autowired
+    private UploadValidateService uploadValidateService;
 
     /**
      * 保存
@@ -53,7 +76,6 @@ public class BarCodeService {
         BarCodePo po = new BarCodePo();
         if (StringUtils.isNotBlank(vo.getId())) {
             po = barCodeDao.findById(vo.getId()).get();
-            //发送给队列，全局做数据更新 TODO
         }
         po.setCode(vo.getCode());
         po.setGoodsId(vo.getGoodsId());
@@ -135,8 +157,109 @@ public class BarCodeService {
      */
     public void delete(BaseDeleteVo vo) {
         for (String id : vo.getIds()) {
-            //查询货品/渠道引用情况 TODO
             barCodeDao.deleteById(id);
+        }
+    }
+
+    /**
+     * 上传条形码
+     *
+     * @param file
+     * @param userSessionBo
+     */
+    public void updateBarCode(MultipartFile file, UserSessionBo userSessionBo) {
+        ValueOperations operations = redisTemplate.opsForValue();
+        operations.set(userSessionBo.getId() + ":upload:barcode", new BaseUploadMessage(), 10L, TimeUnit.MINUTES);
+        LocalDateTime startTime = LocalDateTime.now();
+        try {
+            Workbook workbook = WorkbookFactory.create(file.getInputStream());
+            Sheet sheet = workbook.getSheetAt(0);
+            int count = 0;
+            List<BarCodePo> list = new ArrayList();
+            int errorCellNum = 5;
+            boolean success = true;
+            for (Row row : sheet) {
+                count++;
+                operations.set(userSessionBo.getId() + ":upload:barcode", new BaseUploadMessage(sheet.getLastRowNum() + 1, count), 10L, TimeUnit.MINUTES);
+                if (count == 1) {
+                    row.createCell(errorCellNum).setCellValue("错误信息");
+                    continue;
+                }
+                try {
+                    //获取数据
+                    String code = ExcelReadUtil.getString(row.getCell(0));
+                    String goodsCode = ExcelReadUtil.getString(row.getCell(1));
+                    String colorCode = ExcelReadUtil.getString(row.getCell(2));
+                    String colorName = ExcelReadUtil.getString(row.getCell(3));
+                    String sizeName = ExcelReadUtil.getString(row.getCell(4));
+
+                    if (StringUtils.isBlank(code) || StringUtils.isBlank(goodsCode) || StringUtils.isBlank(colorCode) || StringUtils.isBlank(sizeName)) {
+                        ExcelReadUtil.addErrorToRow(row, errorCellNum, "缺少必要数据");
+                        success = false;
+                        continue;
+                    }
+
+                    //验证条形码是否存在
+                    if (barCodeDao.findByCode(code) != null) {
+                        ExcelReadUtil.addErrorToRow(row, errorCellNum, "条形码已经存在");
+                        success = false;
+                        continue;
+                    }
+                    //判断货号是否存在
+                    GoodsPo g = goodsDao.findByCode(goodsCode);
+                    if (g != null) {
+                        ExcelReadUtil.addErrorToRow(row, errorCellNum, "货号不存在");
+                        success = false;
+                        continue;
+                    }
+                    //验证颜色
+                    GoodsColorPo goodsColorPo = uploadValidateService.validateGoodsColor(g.getId(), colorCode, colorName, row, errorCellNum);
+                    if (goodsColorPo == null) {
+                        success = false;
+                        continue;
+                    }
+                    //验证尺码
+                    DictSizePo dictSizePo = uploadValidateService.validateGoodsSize(g.getId(), sizeName, row, errorCellNum);
+                    if (dictSizePo == null) {
+                        success = false;
+                        continue;
+                    }
+                    BarCodePo po = new BarCodePo();
+                    po.setCode(code);
+                    po.setGoodsId(g.getId());
+                    po.setGoodsCode(g.getCode());
+                    po.setGoodsName(g.getName());
+                    po.setGoodsSizeId(dictSizePo.getId());
+                    po.setGoodsSizeName(dictSizePo.getName());
+                    po.setGoodsColorId(goodsColorPo.getColorId());
+                    po.setGoodsColorCode(goodsColorPo.getColorCode());
+                    po.setGoodsColorName(goodsColorPo.getColorName());
+                    if (!list.contains(po)) {
+                        list.add(po);
+                    }
+                } catch (MessageException e) {
+                    success = false;
+                    ExcelReadUtil.addErrorToRow(row, errorCellNum, e.getMessage());
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            if (success) {
+                barCodeDao.saveAll(list);
+                operations.set(userSessionBo.getId() + ":upload:barcode", new BaseUploadMessage(1, TimeUtil.useTime(startTime)), 10L, TimeUnit.MINUTES);
+            } else {
+                try (FileOutputStream outputStream = new FileOutputStream(erpFileTempUrl + "/" + userSessionBo.getToken() + ".xlsx")) {
+                    workbook.write(outputStream);
+                    outputStream.flush();
+                    operations.set(userSessionBo.getId() + ":upload:barcode", new BaseUploadMessage(userSessionBo.getToken() + ".xlsx", -1, TimeUtil.useTime(startTime)), 10L, TimeUnit.MINUTES);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Throwable e) {
+            operations.set(userSessionBo.getId() + ":upload:barcode", new BaseUploadMessage(-1, TimeUtil.useTime(startTime), e.getMessage()), 10L, TimeUnit.MINUTES);
+            e.printStackTrace();
         }
     }
 

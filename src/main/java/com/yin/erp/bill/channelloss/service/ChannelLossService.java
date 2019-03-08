@@ -5,7 +5,6 @@ import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.base.entity.vo.out.BackPageVo;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
-import com.yin.erp.base.utils.ExcelReadUtil;
 import com.yin.erp.bill.channelloss.dao.ChannelLossDao;
 import com.yin.erp.bill.channelloss.dao.ChannelLossDetailDao;
 import com.yin.erp.bill.channelloss.dao.ChannelLossGoodsDao;
@@ -19,8 +18,8 @@ import com.yin.erp.bill.common.entity.vo.in.SearchBillVo;
 import com.yin.erp.bill.common.enums.BillStatusEnum;
 import com.yin.erp.bill.common.service.BillCommonService;
 import com.yin.erp.bill.common.service.BillService;
+import com.yin.erp.bill.settlement.dao.SettlementDao;
 import com.yin.erp.stock.service.StockChannelService;
-import org.apache.poi.ss.usermodel.Row;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -47,6 +46,8 @@ public class ChannelLossService extends BillService {
     private ChannelLossDetailDao channelLossDetailDao;
     @Autowired
     private StockChannelService stockChannelService;
+    @Autowired
+    private SettlementDao settlementDao;
     @Value("${erp.file.temp.url}")
     private String erpFileTempUrl;
     @Autowired
@@ -61,7 +62,7 @@ public class ChannelLossService extends BillService {
      */
     @Override
     public BackPageVo<BillVo> findBillPage(SearchBillVo vo) throws MessageException {
-        return billCommonService.findBillPage(vo, channelLossDao, new String[]{"channelName", "channelCode", "channelName", "channelCode"});
+        return billCommonService.findBillPage(vo, channelLossDao, new String[]{"channelName", "channelCode"});
     }
 
     /**
@@ -72,7 +73,7 @@ public class ChannelLossService extends BillService {
      */
     @Override
     public BillPo save(BillVo vo, UserSessionBo userSessionBo) throws MessageException {
-        return billCommonService.save(new ChannelLossPo(), vo, userSessionBo, channelLossDao, channelLossGoodsDao, channelLossDetailDao, "QDDR");
+        return billCommonService.save(new ChannelLossPo(), vo, userSessionBo, channelLossDao, channelLossGoodsDao, channelLossDetailDao, "QDSY", null, settlementDao);
     }
 
 
@@ -81,11 +82,9 @@ public class ChannelLossService extends BillService {
      *
      * @param vo
      */
-    public void delete(BaseDeleteVo vo) {
+    public void delete(BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
-            channelLossDetailDao.deleteAllByBillId(id);
-            channelLossGoodsDao.deleteAllByBillId(id);
-            channelLossDao.deleteById(id);
+            billCommonService.deleteById(id, channelLossDao, channelLossGoodsDao, channelLossDetailDao);
         }
     }
 
@@ -94,16 +93,13 @@ public class ChannelLossService extends BillService {
      *
      * @param vo
      */
+    @Override
     public void audit(BaseAuditVo vo, UserSessionBo userSessionBo) throws MessageException {
         Date d = new Date();
         for (String id : vo.getIds()) {
             ChannelLossPo po = channelLossDao.findById(id).get();
-            po.setAuditUserId(userSessionBo.getId());
-            po.setAuditUserName(userSessionBo.getName());
-            po.setStatus(vo.getStatus());
-            po.setAuditDate(d);
-            channelLossDao.save(po);
-            if (vo.getStatus().equals(BillStatusEnum.AUDITED.name())) {
+            billCommonService.audit(id, vo, userSessionBo, d, channelLossDao, channelLossGoodsDao, channelLossDetailDao);
+            if (vo.getStatus().equals(BillStatusEnum.AUDITED.name()) || vo.getStatus().equals(BillStatusEnum.COMPLETE.name())) {
                 for (BillDetailPo detail : channelLossDetailDao.findByBillId(id)) {
                     stockChannelService.minus(detail, po.getChannelId());
                 }
@@ -120,8 +116,7 @@ public class ChannelLossService extends BillService {
     public void unAudit(BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
             ChannelLossPo po = channelLossDao.findById(id).get();
-            po.setStatus("AUDIT_FAILURE");
-            channelLossDao.save(po);
+            billCommonService.unAudit(id, channelLossDao, channelLossGoodsDao, channelLossDetailDao);
             for (BillDetailPo detail : channelLossDetailDao.findByBillId(id)) {
                 stockChannelService.add(detail, po.getChannelId());
             }
@@ -145,17 +140,7 @@ public class ChannelLossService extends BillService {
      * @param userSessionBo
      */
     public void uploadBill(MultipartFile file, UserSessionBo userSessionBo) {
-        billCommonService.uploadBill(file, userSessionBo, this, "c2s");
-    }
-
-    @Override
-    public String uploadBillChannelCode(Row row) throws MessageException {
-        return ExcelReadUtil.getString(row.getCell(1));
-    }
-
-    @Override
-    public String uploadBillSupplierCode(Row row) throws MessageException {
-        return ExcelReadUtil.getString(row.getCell(2));
+        billCommonService.uploadBill(file, userSessionBo, this, "cl");
     }
 
     /**
@@ -166,7 +151,7 @@ public class ChannelLossService extends BillService {
      * @throws Exception
      */
     public void export(BaseBillExportVo vo, HttpServletResponse response) throws Exception {
-        billCommonService.export(vo, response, this, channelLossGoodsDao, channelLossDetailDao, "channel", "toChannel", true);
+        billCommonService.export(vo, response, this, channelLossGoodsDao, channelLossDetailDao, "channel", null, false);
     }
 
 }

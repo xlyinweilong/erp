@@ -120,7 +120,9 @@ public class CashController {
             //渠道
             List<Predicate> predicatesChannel = new ArrayList<>();
             predicatesChannel.add(criteriaBuilder.equal(root.get("joinChannelType"), "ALL"));
-            predicatesChannel.add(criteriaBuilder.in(root.get("id")).value(activityIds));
+            if(activityIds.size() > 0){
+                predicatesChannel.add(criteriaBuilder.in(root.get("id")).value(activityIds));
+            }
             predicates.add(criteriaBuilder.or(predicatesChannel.toArray(new Predicate[predicatesChannel.size()])));
             //星期
             List<Predicate> predicatesWeek = new ArrayList<>();

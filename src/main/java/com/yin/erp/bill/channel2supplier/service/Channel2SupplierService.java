@@ -5,7 +5,6 @@ import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.base.entity.vo.out.BackPageVo;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
-import com.yin.erp.base.utils.ExcelReadUtil;
 import com.yin.erp.bill.channel2supplier.dao.Channel2SupplierDao;
 import com.yin.erp.bill.channel2supplier.dao.Channel2SupplierDetailDao;
 import com.yin.erp.bill.channel2supplier.dao.Channel2SupplierGoodsDao;
@@ -20,7 +19,6 @@ import com.yin.erp.bill.common.enums.BillStatusEnum;
 import com.yin.erp.bill.common.service.BillCommonService;
 import com.yin.erp.bill.common.service.BillService;
 import com.yin.erp.stock.service.StockChannelService;
-import org.apache.poi.ss.usermodel.Row;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -92,6 +90,7 @@ public class Channel2SupplierService extends BillService {
      *
      * @param vo
      */
+    @Override
     public void audit(BaseAuditVo vo, UserSessionBo userSessionBo) throws MessageException {
         Date d = new Date();
         for (String id : vo.getIds()) {
@@ -139,16 +138,6 @@ public class Channel2SupplierService extends BillService {
      */
     public void uploadBill(MultipartFile file, UserSessionBo userSessionBo) {
         billCommonService.uploadBill(file, userSessionBo, this, "c2s");
-    }
-
-    @Override
-    public String uploadBillChannelCode(Row row) throws MessageException {
-        return ExcelReadUtil.getString(row.getCell(1));
-    }
-
-    @Override
-    public String uploadBillSupplierCode(Row row) throws MessageException {
-        return ExcelReadUtil.getString(row.getCell(2));
     }
 
     /**

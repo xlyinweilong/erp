@@ -23,7 +23,7 @@ public interface Channel2WarehouseGoodsDao extends BaseBillGoodsDao<Channel2Ware
     @Override
     int deleteAllByBillId(@Param("billId") String billId);
 
-    @Query("select t from Channel2WarehouseGoodsPo t where t.billId = :billId order by t.id desc")
+    @Query("select t from Channel2WarehouseGoodsPo t where t.billId = :billId order by t.billOrder asc")
     @Override
     List<BillGoodsPo> findByBillId(@Param("billId") String billId);
 

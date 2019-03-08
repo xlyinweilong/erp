@@ -67,7 +67,7 @@ public class SupplierController {
      * @return
      */
     @PostMapping(value = "delete")
-    public BaseJson logout(@RequestBody BaseDeleteVo vo) {
+    public BaseJson delete(@RequestBody BaseDeleteVo vo) throws Exception{
         supplierService.delete(vo);
         return BaseJson.getSuccess("删除成功");
     }

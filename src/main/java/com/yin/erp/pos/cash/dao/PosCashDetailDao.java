@@ -23,4 +23,10 @@ public interface PosCashDetailDao extends JpaRepository<PosCashDetailPo, String>
      * @return
      */
     List<PosCashDetailPo> findAllByBillId(String billId);
+
+
+    Long countByGoodsId(String goodsId);
+
+
+    Long countByEmployId(String employId);
 }
