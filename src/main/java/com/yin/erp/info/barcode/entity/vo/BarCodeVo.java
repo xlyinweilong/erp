@@ -39,4 +39,26 @@ public class BarCodeVo extends BasePageVo {
 
     private BigDecimal price;
 
+    private String brandName;
+
+    private String categoryName;
+
+    private String category2Name;
+
+    private String seriesName;
+
+    private String patternName;
+
+    private String styleName;
+
+    private String seasonName;
+
+    private String yearName;
+
+    private String sexName;
+
+    private String supplierCode;
+
+    private String supplierName;
+
 }

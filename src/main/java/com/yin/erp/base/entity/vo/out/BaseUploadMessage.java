@@ -45,6 +45,11 @@ public class BaseUploadMessage implements Serializable {
      */
     private String message;
 
+    /**
+     * 回传数据
+     */
+    private Object data;
+
     public BaseUploadMessage() {
     }
 
@@ -72,5 +77,11 @@ public class BaseUploadMessage implements Serializable {
     public BaseUploadMessage(int totalRowCount, int nowRowCount) {
         this.totalRowCount = totalRowCount;
         this.nowRowCount = nowRowCount;
+    }
+
+    public BaseUploadMessage(int status, String useTime, Object data) {
+        this.status = status;
+        this.useTime = useTime;
+        this.data = data;
     }
 }

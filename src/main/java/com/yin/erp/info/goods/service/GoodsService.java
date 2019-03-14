@@ -28,7 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -37,9 +36,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.criteria.Predicate;
 import java.io.FileOutputStream;
@@ -321,206 +320,200 @@ public class GoodsService {
     /**
      * 导入货品资料
      *
-     * @param file
+     * @param workbook
      * @param userSessionBo
      */
-    public void updateGoods(MultipartFile file, UserSessionBo userSessionBo) {
+    @Async
+    public void updateGoods(Workbook workbook, UserSessionBo userSessionBo, LocalDateTime startTime) {
         ValueOperations operations = redisTemplate.opsForValue();
-        LocalDateTime startTime = LocalDateTime.now();
-        try {
-            Workbook workbook = WorkbookFactory.create(file.getInputStream());
-            Sheet sheet = workbook.getSheetAt(0);
-            int count = 0;
-            List<GoodsPo> goodsList = new ArrayList();
-            List<GoodsColorPo> goodsColorList = new ArrayList<>();
-            int errorCellNum = 17;
-            boolean success = true;
-            for (Row row : sheet) {
-                count++;
-                operations.set(userSessionBo.getId() + ":upload:goods", new BaseUploadMessage(sheet.getLastRowNum() + 1, count), 10L, TimeUnit.MINUTES);
-                if (count == 1) {
-                    row.createCell(errorCellNum).setCellValue("错误信息");
+        Sheet sheet = workbook.getSheetAt(0);
+        int count = 0;
+        List<GoodsPo> goodsList = new ArrayList();
+        List<GoodsColorPo> goodsColorList = new ArrayList<>();
+        int errorCellNum = 17;
+        boolean success = true;
+        for (Row row : sheet) {
+            count++;
+            operations.set(userSessionBo.getId() + ":upload:goods", new BaseUploadMessage(sheet.getLastRowNum() + 1, count), 10L, TimeUnit.MINUTES);
+            if (count == 1) {
+                row.createCell(errorCellNum).setCellValue("错误信息");
+                continue;
+            }
+            try {
+                //获取数据
+                String code = ExcelReadUtil.getString(row.getCell(0));
+                String name = ExcelReadUtil.getString(row.getCell(1));
+                String sizeGroupName = ExcelReadUtil.getString(row.getCell(2));
+                String colorCode = ExcelReadUtil.getString(row.getCell(3));
+                String colorName = ExcelReadUtil.getString(row.getCell(4));
+                String brandName = ExcelReadUtil.getString(row.getCell(5));
+                String categoryName = ExcelReadUtil.getString(row.getCell(6));
+                String category2Name = ExcelReadUtil.getString(row.getCell(7));
+                String seriesName = ExcelReadUtil.getString(row.getCell(8));
+                String patternName = ExcelReadUtil.getString(row.getCell(9));
+                String styleName = ExcelReadUtil.getString(row.getCell(10));
+                String seasonName = ExcelReadUtil.getString(row.getCell(11));
+                String yearName = ExcelReadUtil.getString(row.getCell(12));
+                String sexName = ExcelReadUtil.getString(row.getCell(13));
+                String supplierCode = ExcelReadUtil.getString(row.getCell(14));
+                BigDecimal tagPrice1 = ExcelReadUtil.getBigDecimal(row.getCell(15));
+
+                if (StringUtils.isBlank(code) || StringUtils.isBlank(name) || StringUtils.isBlank(sizeGroupName) || StringUtils.isBlank(colorCode) || StringUtils.isBlank(colorName)
+                        || tagPrice1 == null) {
+                    ExcelReadUtil.addErrorToRow(row, errorCellNum, "缺少必要数据");
+                    success = false;
                     continue;
                 }
-                try {
-                    //获取数据
-                    String code = ExcelReadUtil.getString(row.getCell(0));
-                    String name = ExcelReadUtil.getString(row.getCell(1));
-                    String sizeGroupName = ExcelReadUtil.getString(row.getCell(2));
-                    String colorCode = ExcelReadUtil.getString(row.getCell(3));
-                    String colorName = ExcelReadUtil.getString(row.getCell(4));
-                    String brandName = ExcelReadUtil.getString(row.getCell(5));
-                    String categoryName = ExcelReadUtil.getString(row.getCell(6));
-                    String category2Name = ExcelReadUtil.getString(row.getCell(7));
-                    String seriesName = ExcelReadUtil.getString(row.getCell(8));
-                    String patternName = ExcelReadUtil.getString(row.getCell(9));
-                    String styleName = ExcelReadUtil.getString(row.getCell(10));
-                    String seasonName = ExcelReadUtil.getString(row.getCell(11));
-                    String yearName = ExcelReadUtil.getString(row.getCell(12));
-                    String sexName = ExcelReadUtil.getString(row.getCell(13));
-                    String supplierCode = ExcelReadUtil.getString(row.getCell(14));
-                    BigDecimal tagPrice1 = ExcelReadUtil.getBigDecimal(row.getCell(15));
 
-                    if (StringUtils.isBlank(code) || StringUtils.isBlank(name) || StringUtils.isBlank(sizeGroupName) || StringUtils.isBlank(colorCode) || StringUtils.isBlank(colorName)
-                            || tagPrice1 == null) {
-                        ExcelReadUtil.addErrorToRow(row, errorCellNum, "缺少必要数据");
-                        success = false;
-                        continue;
-                    }
+                //判断货号是否存在，存在删除
+                GoodsPo g = goodsDao.findByCode(code);
+                if (g != null) {
+                    this.deleteById(g.getId());
+                }
 
-                    //判断货号是否存在，存在删除
-                    GoodsPo g = goodsDao.findByCode(code);
-                    if (g != null) {
-                        this.deleteById(g.getId());
-                    }
-
-                    GoodsPo goodsPo = new GoodsPo();
-                    goodsPo.setCode(code);
-                    goodsPo.setName(name);
-                    goodsPo.setId(GenerateUtil.createUUID());
-                    goodsPo.setTagPrice1(tagPrice1);
-                    if (tagPrice1.compareTo(BigDecimal.ZERO) < 0) {
-                        success = false;
-                        ExcelReadUtil.addErrorToRow(row, errorCellNum, "吊牌价必须不能小于0");
-                    }
-                    if (tagPrice1.scale() > 2) {
-                        success = false;
-                        ExcelReadUtil.addErrorToRow(row, errorCellNum, "吊牌价最多只能有2位小数");
-                    }
-                    if (goodsList.contains(goodsPo)) {
-                        goodsPo.setId(goodsList.get(goodsList.indexOf(goodsPo)).getId());
-                    }
-
-                    GoodsColorPo goodsColorPo = new GoodsColorPo();
-
-                    DictPo dictSizePo = dictDao.findByNameAndType1AndType2(sizeGroupName, DictType.GOODS.name(), DictGoodsType.SIZE_GROUP.name());
-                    if (dictSizePo == null) {
-                        ExcelReadUtil.addErrorToRow(row, errorCellNum, "尺码组不存在");
-                        success = false;
-                        continue;
-                    }
-                    goodsPo.setSizeGroupId(dictSizePo.getId());
-                    goodsPo.setSizeGroupName(dictSizePo.getName());
-
-                    //供应商
-                    if (StringUtils.isNotBlank(supplierCode)) {
-                        SupplierPo supplierPo = supplierDao.findByCode(supplierCode);
-                        if (supplierPo == null) {
-                            ExcelReadUtil.addErrorToRow(row, errorCellNum, "供应商不存在");
-                            success = false;
-                            continue;
-                        }
-                        goodsPo.setSupplierId(supplierPo.getId());
-                        goodsPo.setSupplierCode(supplierPo.getCode());
-                        goodsPo.setSupplierName(supplierPo.getName());
-                    }
-
-                    //插入颜色
-                    DictPo dictColor = dictDao.findByCodeAndNameAndType1AndType2(colorCode, colorName, DictType.GOODS.name(), DictGoodsType.COLOR.name());
-                    if (dictColor == null) {
-                        dictColor = new DictPo(colorCode, colorName, DictType.GOODS.name(), DictGoodsType.COLOR.name());
-                        dictDao.save(dictColor);
-                    }
-                    goodsColorPo.setColorId(dictColor.getId());
-                    goodsColorPo.setColorCode(dictColor.getCode());
-                    goodsColorPo.setColorName(dictColor.getName());
-                    goodsColorPo.setGoodsId(goodsPo.getId());
-                    if (goodsColorList.contains(goodsColorPo)) {
-
-                    } else {
-                        goodsColorList.add(goodsColorPo);
-                    }
-
-                    //品牌
-                    if (StringUtils.isNotBlank(brandName)) {
-                        DictPo dictBrand = this.insertDictPo4UploadGoods(brandName, DictGoodsType.BRAND);
-                        goodsPo.setBrandId(dictBrand.getId());
-                        goodsPo.setBrandName(dictBrand.getName());
-                    }
-
-                    //品类
-                    if (StringUtils.isNotBlank(categoryName)) {
-                        DictPo dictCategoryName = this.insertDictPo4UploadGoods(categoryName, DictGoodsType.CATEGORY);
-                        goodsPo.setCategoryId(dictCategoryName.getId());
-                        goodsPo.setCategoryName(dictCategoryName.getName());
-                    }
-
-                    //二级品类
-                    if (StringUtils.isNotBlank(category2Name)) {
-                        DictPo dictCategory2Name = this.insertDictPo4UploadGoods(category2Name, DictGoodsType.CATEGORY_2);
-                        goodsPo.setCategory2Id(dictCategory2Name.getId());
-                        goodsPo.setCategory2Name(dictCategory2Name.getName());
-                    }
-
-                    //系列
-                    if (StringUtils.isNotBlank(seriesName)) {
-                        DictPo dictSeries = this.insertDictPo4UploadGoods(seriesName, DictGoodsType.SERIES);
-                        goodsPo.setSeriesId(dictSeries.getId());
-                        goodsPo.setSeriesName(dictSeries.getName());
-                    }
-
-                    //款式
-                    if (StringUtils.isNotBlank(patternName)) {
-                        DictPo dictPattern = this.insertDictPo4UploadGoods(patternName, DictGoodsType.PATTERN);
-                        goodsPo.setPatternId(dictPattern.getId());
-                        goodsPo.setPatternName(dictPattern.getName());
-                    }
-
-                    //风格
-                    if (StringUtils.isNotBlank(styleName)) {
-                        DictPo dictStyle = this.insertDictPo4UploadGoods(styleName, DictGoodsType.STYLE);
-                        goodsPo.setStyleId(dictStyle.getId());
-                        goodsPo.setStyleName(dictStyle.getName());
-                    }
-
-                    //季节
-                    if (StringUtils.isNotBlank(seasonName)) {
-                        DictPo dictSeason = this.insertDictPo4UploadGoods(seasonName, DictGoodsType.SEASON);
-                        goodsPo.setSeasonId(dictSeason.getId());
-                        goodsPo.setSeasonName(dictSeason.getName());
-                    }
-
-                    //年份
-                    if (StringUtils.isNotBlank(yearName)) {
-                        DictPo dictYear = this.insertDictPo4UploadGoods(yearName, DictGoodsType.YEAR);
-                        goodsPo.setYearId(dictYear.getId());
-                        goodsPo.setYearName(dictYear.getName());
-                    }
-
-                    //性别
-                    if (StringUtils.isNotBlank(sexName)) {
-                        DictPo dictSex = this.insertDictPo4UploadGoods(sexName, DictGoodsType.SEX);
-                        goodsPo.setSexId(dictSex.getId());
-                        goodsPo.setSexName(dictSex.getName());
-                    }
-
-                    if (!goodsList.contains(goodsPo)) {
-                        goodsList.add(goodsPo);
-                    }
-                } catch (MessageException e) {
+                GoodsPo goodsPo = new GoodsPo();
+                goodsPo.setCode(code);
+                goodsPo.setName(name);
+                goodsPo.setId(GenerateUtil.createUUID());
+                goodsPo.setTagPrice1(tagPrice1);
+                if (tagPrice1.compareTo(BigDecimal.ZERO) < 0) {
                     success = false;
-                    ExcelReadUtil.addErrorToRow(row, errorCellNum, e.getMessage());
-                    e.printStackTrace();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    ExcelReadUtil.addErrorToRow(row, errorCellNum, "吊牌价必须不能小于0");
                 }
-            }
-            if (success) {
-                goodsDao.saveAll(goodsList);
-                goodsColorDao.saveAll(goodsColorList);
-                operations.set(userSessionBo.getId() + ":upload:goods", new BaseUploadMessage(1, TimeUtil.useTime(startTime)), 10L, TimeUnit.MINUTES);
-            } else {
-                try (FileOutputStream outputStream = new FileOutputStream(erpFileTempUrl + "/" + userSessionBo.getToken() + ".xlsx")) {
-                    workbook.write(outputStream);
-                    outputStream.flush();
-                    operations.set(userSessionBo.getId() + ":upload:goods", new BaseUploadMessage(userSessionBo.getToken() + ".xlsx", -1, TimeUtil.useTime(startTime)), 10L, TimeUnit.MINUTES);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                if (tagPrice1.scale() > 2) {
+                    success = false;
+                    ExcelReadUtil.addErrorToRow(row, errorCellNum, "吊牌价最多只能有2位小数");
                 }
+                if (goodsList.contains(goodsPo)) {
+                    goodsPo.setId(goodsList.get(goodsList.indexOf(goodsPo)).getId());
+                }
+
+                GoodsColorPo goodsColorPo = new GoodsColorPo();
+
+                DictPo dictSizePo = dictDao.findByNameAndType1AndType2(sizeGroupName, DictType.GOODS.name(), DictGoodsType.SIZE_GROUP.name());
+                if (dictSizePo == null) {
+                    ExcelReadUtil.addErrorToRow(row, errorCellNum, "尺码组不存在");
+                    success = false;
+                    continue;
+                }
+                goodsPo.setSizeGroupId(dictSizePo.getId());
+                goodsPo.setSizeGroupName(dictSizePo.getName());
+
+                //供应商
+                if (StringUtils.isNotBlank(supplierCode)) {
+                    SupplierPo supplierPo = supplierDao.findByCode(supplierCode);
+                    if (supplierPo == null) {
+                        ExcelReadUtil.addErrorToRow(row, errorCellNum, "供应商不存在");
+                        success = false;
+                        continue;
+                    }
+                    goodsPo.setSupplierId(supplierPo.getId());
+                    goodsPo.setSupplierCode(supplierPo.getCode());
+                    goodsPo.setSupplierName(supplierPo.getName());
+                }
+
+                //插入颜色
+                DictPo dictColor = dictDao.findByCodeAndNameAndType1AndType2(colorCode, colorName, DictType.GOODS.name(), DictGoodsType.COLOR.name());
+                if (dictColor == null) {
+                    dictColor = new DictPo(colorCode, colorName, DictType.GOODS.name(), DictGoodsType.COLOR.name());
+                    dictDao.save(dictColor);
+                }
+                goodsColorPo.setColorId(dictColor.getId());
+                goodsColorPo.setColorCode(dictColor.getCode());
+                goodsColorPo.setColorName(dictColor.getName());
+                goodsColorPo.setGoodsId(goodsPo.getId());
+                if (goodsColorList.contains(goodsColorPo)) {
+
+                } else {
+                    goodsColorList.add(goodsColorPo);
+                }
+
+                //品牌
+                if (StringUtils.isNotBlank(brandName)) {
+                    DictPo dictBrand = this.insertDictPo4UploadGoods(brandName, DictGoodsType.BRAND);
+                    goodsPo.setBrandId(dictBrand.getId());
+                    goodsPo.setBrandName(dictBrand.getName());
+                }
+
+                //品类
+                if (StringUtils.isNotBlank(categoryName)) {
+                    DictPo dictCategoryName = this.insertDictPo4UploadGoods(categoryName, DictGoodsType.CATEGORY);
+                    goodsPo.setCategoryId(dictCategoryName.getId());
+                    goodsPo.setCategoryName(dictCategoryName.getName());
+                }
+
+                //二级品类
+                if (StringUtils.isNotBlank(category2Name)) {
+                    DictPo dictCategory2Name = this.insertDictPo4UploadGoods(category2Name, DictGoodsType.CATEGORY_2);
+                    goodsPo.setCategory2Id(dictCategory2Name.getId());
+                    goodsPo.setCategory2Name(dictCategory2Name.getName());
+                }
+
+                //系列
+                if (StringUtils.isNotBlank(seriesName)) {
+                    DictPo dictSeries = this.insertDictPo4UploadGoods(seriesName, DictGoodsType.SERIES);
+                    goodsPo.setSeriesId(dictSeries.getId());
+                    goodsPo.setSeriesName(dictSeries.getName());
+                }
+
+                //款式
+                if (StringUtils.isNotBlank(patternName)) {
+                    DictPo dictPattern = this.insertDictPo4UploadGoods(patternName, DictGoodsType.PATTERN);
+                    goodsPo.setPatternId(dictPattern.getId());
+                    goodsPo.setPatternName(dictPattern.getName());
+                }
+
+                //风格
+                if (StringUtils.isNotBlank(styleName)) {
+                    DictPo dictStyle = this.insertDictPo4UploadGoods(styleName, DictGoodsType.STYLE);
+                    goodsPo.setStyleId(dictStyle.getId());
+                    goodsPo.setStyleName(dictStyle.getName());
+                }
+
+                //季节
+                if (StringUtils.isNotBlank(seasonName)) {
+                    DictPo dictSeason = this.insertDictPo4UploadGoods(seasonName, DictGoodsType.SEASON);
+                    goodsPo.setSeasonId(dictSeason.getId());
+                    goodsPo.setSeasonName(dictSeason.getName());
+                }
+
+                //年份
+                if (StringUtils.isNotBlank(yearName)) {
+                    DictPo dictYear = this.insertDictPo4UploadGoods(yearName, DictGoodsType.YEAR);
+                    goodsPo.setYearId(dictYear.getId());
+                    goodsPo.setYearName(dictYear.getName());
+                }
+
+                //性别
+                if (StringUtils.isNotBlank(sexName)) {
+                    DictPo dictSex = this.insertDictPo4UploadGoods(sexName, DictGoodsType.SEX);
+                    goodsPo.setSexId(dictSex.getId());
+                    goodsPo.setSexName(dictSex.getName());
+                }
+
+                if (!goodsList.contains(goodsPo)) {
+                    goodsList.add(goodsPo);
+                }
+            } catch (MessageException e) {
+                success = false;
+                ExcelReadUtil.addErrorToRow(row, errorCellNum, e.getMessage());
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Throwable e) {
-            operations.set(userSessionBo.getId() + ":upload:barcode", new BaseUploadMessage(-1, TimeUtil.useTime(startTime), e.getMessage()), 10L, TimeUnit.MINUTES);
-            e.printStackTrace();
+        }
+        if (success) {
+            goodsDao.saveAll(goodsList);
+            goodsColorDao.saveAll(goodsColorList);
+            operations.set(userSessionBo.getId() + ":upload:goods", new BaseUploadMessage(1, TimeUtil.useTime(startTime)), 10L, TimeUnit.MINUTES);
+        } else {
+            try (FileOutputStream outputStream = new FileOutputStream(erpFileTempUrl + "/" + userSessionBo.getToken() + ".xlsx")) {
+                workbook.write(outputStream);
+                outputStream.flush();
+                operations.set(userSessionBo.getId() + ":upload:goods", new BaseUploadMessage(userSessionBo.getToken() + ".xlsx", -1, TimeUtil.useTime(startTime)), 10L, TimeUnit.MINUTES);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

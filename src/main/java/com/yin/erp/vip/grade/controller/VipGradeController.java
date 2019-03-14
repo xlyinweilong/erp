@@ -1,11 +1,14 @@
 package com.yin.erp.vip.grade.controller;
 
+import com.yin.erp.activity.dao.ActivityVipDao;
 import com.yin.erp.base.controller.BaseJson;
 import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.vip.grade.dao.VipGradeDao;
 import com.yin.erp.vip.grade.entity.po.VipGradePo;
 import com.yin.erp.vip.grade.entity.vo.VipGradeVo;
+import com.yin.erp.vip.integral.dao.VipIntegralRuleDao;
+import com.yin.erp.vip.xp.dao.VipXpRuleDao;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -29,6 +32,12 @@ public class VipGradeController {
 
     @Autowired
     private VipGradeDao vipGradeDao;
+    @Autowired
+    private VipXpRuleDao vipXpRuleDao;
+    @Autowired
+    private VipIntegralRuleDao vipIntegralRuleDao;
+    @Autowired
+    private ActivityVipDao activityVipDao;
 
 
     /**
@@ -80,6 +89,10 @@ public class VipGradeController {
     @PostMapping(value = "delete")
     public BaseJson delete(@RequestBody BaseDeleteVo vo) throws MessageException {
         for (String id : vo.getIds()) {
+            VipGradePo vipGradePo = vipGradeDao.findById(id).get();
+            if (vipGradePo.getIndexDepth() != null) {
+                throw new MessageException("已经设置等级关系不能删除");
+            }
             vipGradeDao.deleteById(id);
         }
         return BaseJson.getSuccess();
@@ -94,6 +107,16 @@ public class VipGradeController {
      */
     @PostMapping(value = "set_grade")
     public BaseJson setGrade(@RequestBody List<VipGradeVo> list) throws MessageException {
+        //查询删除的是否设置了积分、经验规则引用
+        List<VipGradePo> dbGradeList = vipGradeDao.findAllCanUserd();
+        for (VipGradePo vipGradePo : dbGradeList) {
+            if (list.stream().filter(v -> v.getId().equals(vipGradePo.getId())).count() == 0) {
+                //积分 经验　促销活动
+                if (vipXpRuleDao.countByVipGradeId(vipGradePo.getId()) > 0L || vipIntegralRuleDao.countByVipGradeId(vipGradePo.getId()) > 0L || activityVipDao.countByGradeId(vipGradePo.getId()) > 0L) {
+                    throw new MessageException(vipGradePo.getName() + "已经被引用，不能删除");
+                }
+            }
+        }
         //清除所有深度
         vipGradeDao.updateAllIndexDepthNull();
         int i = 1;

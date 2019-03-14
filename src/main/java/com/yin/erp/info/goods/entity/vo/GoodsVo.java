@@ -88,6 +88,8 @@ public class GoodsVo extends BasePageVo {
 
     private BigDecimal tagPrice1;
 
+    private BigDecimal price;
+
     @NotNull
     private List<String> colorIdList;
 
@@ -96,5 +98,7 @@ public class GoodsVo extends BasePageVo {
     private List<DictSizeBo> sizeList;
 
     private String channelId;
+
+
 
 }

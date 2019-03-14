@@ -1,4 +1,4 @@
-package com.yin.erp.base.upload;
+package com.yin.erp.upload;
 
 import com.yin.erp.base.utils.ExcelReadUtil;
 import com.yin.erp.info.dict.dao.DictSizeDao;

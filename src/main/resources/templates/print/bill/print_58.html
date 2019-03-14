@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta content="text/html;charset=UTF-8"/>
+    <style media="print">
+        @page {
+            margin: 0mm 1mm 0mm 1mm;
+            size: portrait;
+        }
+    </style>
+    <style type="text/css">  
+      table {
+        font-size: 20px;
+        border-collapse: collapse;
+        text-align: center;
+        margin: 0 auto;
+    }
+
+    .al {
+        width: 58mm;
+        margin-left: 1px;
+        margin-right: 1px;
+    }
+
+    body {
+        text-align: center;
+        margin: 1px;
+        font-size: 10px;
+    }
+    </style>
+</head>
+<body class="al">
+<div style="margin:0 auto;border:0px solid #000;width:58mm">
+    <h2 th:text="${billName}"></h2>
+    <p style="text-align: left;margin-top: 0px;margin-bottom: 0px;" th:text="'单号:' + ${billPo.code}"></p>
+    <p th:if="${billPo.supplierName != null}" style="text-align: left;margin-top: 0px;margin-bottom: 0px;" th:text="'供应商:' + ${billPo.supplierName}"></p>
+    <p th:if="${billPo.warehouseName != null}" style="text-align: left;margin-top: 0px;margin-bottom: 0px;" th:text="'仓库:' + ${billPo.warehouseName}"></p>
+    <p th:if="${billPo.channelName != null}" style="text-align: left;margin-top: 0px;margin-bottom: 0px;" th:text="'渠道:' + ${billPo.channelName}"></p>
+    <p th:if="${billPo.toChannelName != null}" style="text-align: left;margin-top: 0px;margin-bottom: 0px;" th:text="'调入渠道:' + ${billPo.toChannelName}"></p>
+    <hr style="margin-top: 1px;margin-bottom: 1px;"/>
+    <table style="width:100%">
+        <thead>
+        <tr>
+            <th>货号</th>
+            <th>颜色</th>
+            <th>尺码</th>
+            <th>数量</th>
+            <th>单价</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="detail : ${billDetailPoList}">
+            <td th:text="${detail.goodsCode}"></td>
+            <td th:text="${detail.goodsColorName}"></td>
+            <td th:text="${detail.goodsSizeName}"></td>
+            <td th:text="${detail.billCount}"></td>
+            <td th:text="${detail.price}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <hr style="margin-top:1px;margin-bottom:1px;"/>
+    <table style="width:100%">
+        <thead>
+        <tr>
+            <th>小计</th>
+            <th th:text="${totalGoodsCount}"></th>
+            <th th:text="${totalGoodsAmount} + '元'"></th>
+        </tr>
+        </thead>
+    </table>
+</div>
+</body>
+</html>

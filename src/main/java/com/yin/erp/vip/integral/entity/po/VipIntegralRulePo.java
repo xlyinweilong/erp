@@ -1,14 +1,14 @@
 package com.yin.erp.vip.integral.entity.po;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yin.erp.base.entity.po.BasePo;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 会员积分增加规则
@@ -24,14 +24,14 @@ public class VipIntegralRulePo extends BasePo {
     /**
      * 生效时间
      */
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Column(name = "start_date")
     private Date startDate;
 
     /**
      * 失效时间
      */
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Column(name = "end_date")
     private Date endDate;
 
@@ -58,5 +58,9 @@ public class VipIntegralRulePo extends BasePo {
      */
     @Column(name = "priority")
     private Integer priority = 0;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "vipIntegralRulePo", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<VipIntegralRuleGoodsPo> vipIntegralRuleGoodsPoList;
 
 }

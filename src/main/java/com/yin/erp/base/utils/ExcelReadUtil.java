@@ -79,6 +79,14 @@ public class ExcelReadUtil {
         return obj;
     }
 
+    public static Integer getInteger(Cell cell, Integer defaultValue) throws MessageException {
+        Integer i = getInteger(cell);
+        if (i == null) {
+            return defaultValue;
+        }
+        return i;
+    }
+
     public static Integer getInteger(Cell cell) throws MessageException {
         if (cell == null) {
             return null;
@@ -97,13 +105,21 @@ public class ExcelReadUtil {
         }
     }
 
+    public static BigDecimal getBigDecimal(Cell cell, BigDecimal defaultValue) throws MessageException {
+        BigDecimal i = getBigDecimal(cell);
+        if (i == null) {
+            return defaultValue;
+        }
+        return i;
+    }
+
     public static BigDecimal getBigDecimal(Cell cell) throws MessageException {
         if (cell == null) {
             return null;
         }
         try {
             if (cell.getCellType().equals(CellType.STRING)) {
-                if (StringUtils.isNotBlank(cell.getStringCellValue())) {
+                if (StringUtils.isBlank(cell.getStringCellValue())) {
                     return null;
                 }
                 return new BigDecimal(cell.getStringCellValue());

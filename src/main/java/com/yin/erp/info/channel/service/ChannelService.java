@@ -11,6 +11,8 @@ import com.yin.erp.info.channel.dao.ChannelDao;
 import com.yin.erp.info.channel.entity.po.ChannelPo;
 import com.yin.erp.info.channel.entity.vo.ChannelVo;
 import com.yin.erp.info.dict.feign.DictFeign;
+import com.yin.erp.info.marketpoint.dao.MarketPointDao;
+import com.yin.erp.info.marketpoint.entity.po.MarketPointPo;
 import com.yin.erp.pos.cash.dao.PosCashDao;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +48,8 @@ public class ChannelService {
     private ApplicationContext context;
     @Autowired
     private PosCashDao posCashDao;
+    @Autowired
+    private MarketPointDao marketPointDao;
 
 
     /**
@@ -63,6 +67,13 @@ public class ChannelService {
         po.setName(vo.getName());
         po.setGroupId(vo.getGroupId());
         po.setGroupName(dictFeign.getNameById(vo.getGroupId()));
+        po.setMarketPointId(null);
+        po.setMarketPointCode(null);
+        if(StringUtils.isNotBlank(vo.getMarketPointId())){
+            MarketPointPo marketPointPo = marketPointDao.findById(vo.getMarketPointId()).get();
+            po.setMarketPointId(marketPointPo.getId());
+            po.setMarketPointCode(marketPointPo.getCode());
+        }
         channelDao.save(po);
         configChannelDao.deleteAllByChannelId(po.getId());
         for (ConfigPo configPo : vo.getChannelConfigList()) {
@@ -84,6 +95,8 @@ public class ChannelService {
         vo.setName(po.getName());
         vo.setGroupId(po.getGroupId());
         vo.setGroupName(po.getGroupName());
+        vo.setMarketPointId(po.getMarketPointId());
+        vo.setMarketPointCode(po.getMarketPointCode());
         vo.setChannelConfigChannelList(configChannelDao.findByChannelId(id));
         return vo;
     }
@@ -132,9 +145,11 @@ public class ChannelService {
             if (posCashDao.countByChannelId(id) > 1L) {
                 throw new MessageException("数据已经被引用，无法删除");
             }
+            //会员引用 TODO
+            //代用卷 TODO
+            //促销活动 TODO
             channelDao.deleteById(id);
             configChannelDao.deleteAllByChannelId(id);
-
         }
     }
 

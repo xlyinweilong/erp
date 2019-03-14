@@ -1,12 +1,12 @@
 package com.yin.erp.vip.integral.entity.po;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yin.erp.base.entity.po.BasePo;
+import com.yin.erp.vip.xp.entity.po.VipXpRulePo;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * 会员积分增加规则-货品
@@ -65,5 +65,10 @@ public class VipIntegralRuleGoodsPo extends BasePo {
 
     @Column(name = "goods_season_name")
     private String goodsSeasonName;
+
+    @JsonIgnore
+    @ManyToOne(cascade = {}, optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "vip_integral_up_rule_id", updatable = false, insertable = false)
+    private VipXpRulePo vipIntegralRulePo;
 
 }

@@ -156,13 +156,4 @@ public class StockChannelController {
         return BaseJson.getSuccess(i);
     }
 
-//    private Specification<Integer> getWhereClause() {
-//        return new Specification<Integer>((root, criteriaQuery, criteriaBuilder) -> {
-//            Predicate predicate = criteriaQuery;
-//            predicate = criteriaQuery.equal(r.get("ifUsed").as(Integer.class), 0);
-//            return predicate;
-//        });
-//    }
-
-
 }

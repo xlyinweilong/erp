@@ -2,7 +2,7 @@ package com.yin.erp.vip.integral.entity.vo;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.yin.erp.base.entity.vo.in.BasePageVo;
+import com.yin.erp.vip.common.vo.BaseVipSearchVo;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,22 +15,20 @@ import java.util.Date;
  */
 @Getter
 @Setter
-public class VipIntegralUpRuleVo extends BasePageVo {
+public class VipIntegralUpRuleVo extends BaseVipSearchVo {
 
     private String id;
-
-    private String searchKey;
 
     /**
      * 生效时间
      */
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date startDate;
 
     /**
      * 失效时间
      */
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date endDate;
 
     /**

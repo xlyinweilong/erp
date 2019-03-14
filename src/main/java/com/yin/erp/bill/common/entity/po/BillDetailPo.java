@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.Transient;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -104,4 +105,7 @@ public class BillDetailPo extends BaseDataPo {
      */
     @Column(name = "bill_count")
     private Integer billCount;
+
+    @Transient
+    private Integer billOrder = 0;
 }

@@ -10,6 +10,7 @@ import com.yin.erp.vip.balance.dao.VipBalanceAddDao;
 import com.yin.erp.vip.balance.entity.po.VipBalanceAddPo;
 import com.yin.erp.vip.info.dao.VipDao;
 import com.yin.erp.vip.info.entity.po.VipPo;
+import com.yin.erp.vip.info.service.VipService;
 import com.yin.erp.vip.integral.entity.vo.VipIntegralUpRuleVo;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -41,6 +42,8 @@ public class VipBalanceAddController {
     private VipBalanceAddDao vipBalanceAddDao;
     @Autowired
     private LoginService loginService;
+    @Autowired
+    private VipService vipService;
 
 
     /**
@@ -61,12 +64,15 @@ public class VipBalanceAddController {
         po.setVipCode(vip.getCode());
         if (po.getBalance().compareTo(BigDecimal.ZERO) > 0) {
             vip.setBalance(vip.getBalance().add(po.getBalance()));
+            vipService.addBalanceLog(po.getVipId(), po.getVipCode(), po.getBalance(), "充值");
         }
         if (po.getIntegral() > 0) {
             vip.setIntegral(vip.getIntegral() + po.getIntegral());
+            vipService.addIntegralLog(po.getVipId(), po.getVipCode(), po.getIntegral(), "充值");
         }
         if (po.getXp() > 0) {
             vip.setXpValue(vip.getXpValue() + po.getXp());
+            vipService.addXpLog(po.getVipId(), po.getVipCode(), po.getXp(), "充值");
         }
         vipDao.save(vip);
         vipBalanceAddDao.save(po);

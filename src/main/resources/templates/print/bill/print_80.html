@@ -10,29 +10,33 @@
     </style>
     <style type="text/css">  
       table {
-            font-size: 20px;
-            border-collapse: collapse;
-            text-align: center;
-            margin: 0 auto;
-        }
+        font-size: 20px;
+        border-collapse: collapse;
+        text-align: center;
+        margin: 0 auto;
+    }
 
-        .al {
-            width: 58mm;
-            margin-left: 1px;
-            margin-right: 1px;
-        }
+    .al {
+        width: 80mm;
+        margin-left: 1px;
+        margin-right: 1px;
+    }
 
-        body {
-            text-align: center;
-            margin: 1px;
-            font-size: 10px;
-        }
+    body {
+        text-align: center;
+        margin: 1px;
+        font-size: 10px;
+    }
     </style>
 </head>
 <body class="al">
-<div style="margin:0 auto;border:0px solid #000;width:58mm">
-    <!--<h2 th:text="${pos.channelName}"></h2>-->
+<div style="margin:0 auto;border:0px solid #000;width:80mm">
+    <h2 th:text="${billName}"></h2>
     <p style="text-align: left;margin-top: 0px;margin-bottom: 0px;" th:text="'单号:' + ${billPo.code}"></p>
+    <p th:if="${billPo.supplierName != null}" style="text-align: left;margin-top: 0px;margin-bottom: 0px;" th:text="'供应商:' + ${billPo.supplierName}"></p>
+    <p th:if="${billPo.warehouseName != null}" style="text-align: left;margin-top: 0px;margin-bottom: 0px;" th:text="'仓库:' + ${billPo.warehouseName}"></p>
+    <p th:if="${billPo.channelName != null}" style="text-align: left;margin-top: 0px;margin-bottom: 0px;" th:text="'渠道:' + ${billPo.channelName}"></p>
+    <p th:if="${billPo.toChannelName != null}" style="text-align: left;margin-top: 0px;margin-bottom: 0px;" th:text="'调入渠道:' + ${billPo.toChannelName}"></p>
     <hr style="margin-top: 1px;margin-bottom: 1px;"/>
     <table style="width:100%">
         <thead>

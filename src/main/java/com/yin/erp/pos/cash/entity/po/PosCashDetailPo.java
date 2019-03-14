@@ -1,12 +1,13 @@
 package com.yin.erp.pos.cash.entity.po;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yin.erp.base.entity.po.BasePo;
+import com.yin.erp.info.channel.entity.po.ChannelPo;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -29,6 +30,7 @@ public class PosCashDetailPo extends BasePo {
      * 单据时间
      */
     @Column(name = "bill_date")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date billDate;
 
     /**
@@ -163,4 +165,32 @@ public class PosCashDetailPo extends BasePo {
     @Column(name = "diy_price")
     private BigDecimal diyPrice;
 
+    /**
+     * 扣点ID
+     */
+    @Column(name = "point_id")
+    private String pointId;
+
+    /**
+     * 扣点编号
+     */
+    @Column(name = "point_code")
+    private String pointCode;
+
+    /**
+     * 扣点
+     */
+    @Column(name = "point")
+    private BigDecimal point;
+
+    @JsonIgnore
+    @ManyToOne(cascade = {}, optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "channel_id", updatable = false, insertable = false)
+    private ChannelPo channelPo;
+
+    @Transient
+    private String channelCode;
+
+    @Transient
+    private String channelName;
 }

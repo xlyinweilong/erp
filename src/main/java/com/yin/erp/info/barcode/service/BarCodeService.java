@@ -4,7 +4,6 @@ import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.base.entity.vo.out.BaseUploadMessage;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
-import com.yin.erp.base.upload.UploadValidateService;
 import com.yin.erp.base.utils.CopyUtil;
 import com.yin.erp.base.utils.ExcelReadUtil;
 import com.yin.erp.base.utils.TimeUtil;
@@ -18,11 +17,11 @@ import com.yin.erp.info.goods.entity.bo.GoodsBo;
 import com.yin.erp.info.goods.entity.po.GoodsColorPo;
 import com.yin.erp.info.goods.entity.po.GoodsPo;
 import com.yin.erp.info.goods.feign.GoodsFeign;
+import com.yin.erp.upload.UploadValidateService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -30,9 +29,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.criteria.Predicate;
 import java.io.FileOutputStream;
@@ -125,6 +124,7 @@ public class BarCodeService {
         if (goodsPo.getGoodsGroupId() != null && !user.getGoodsGroupIds().contains(goodsPo.getGoodsGroupId())) {
             throw new MessageException("条形码：" + code + "对应的货品，没有操作权限");
         }
+        CopyUtil.copyProperties(dictVo, goodsPo);
         dictVo.setPrice(goodsPo.getTagPrice1());
         dictVo.setTagPrice(goodsPo.getTagPrice1());
         return dictVo;
@@ -164,102 +164,95 @@ public class BarCodeService {
     /**
      * 上传条形码
      *
-     * @param file
+     * @param workbook
      * @param userSessionBo
      */
-    public void updateBarCode(MultipartFile file, UserSessionBo userSessionBo) {
+    @Async
+    public void updateBarCode(Workbook workbook, UserSessionBo userSessionBo, LocalDateTime startTime) throws Throwable {
         ValueOperations operations = redisTemplate.opsForValue();
-        operations.set(userSessionBo.getId() + ":upload:barcode", new BaseUploadMessage(), 10L, TimeUnit.MINUTES);
-        LocalDateTime startTime = LocalDateTime.now();
-        try {
-            Workbook workbook = WorkbookFactory.create(file.getInputStream());
-            Sheet sheet = workbook.getSheetAt(0);
-            int count = 0;
-            List<BarCodePo> list = new ArrayList();
-            int errorCellNum = 5;
-            boolean success = true;
-            for (Row row : sheet) {
-                count++;
-                operations.set(userSessionBo.getId() + ":upload:barcode", new BaseUploadMessage(sheet.getLastRowNum() + 1, count), 10L, TimeUnit.MINUTES);
-                if (count == 1) {
-                    row.createCell(errorCellNum).setCellValue("错误信息");
+        Sheet sheet = workbook.getSheetAt(0);
+        int count = 0;
+        List<BarCodePo> list = new ArrayList();
+        int errorCellNum = 5;
+        boolean success = true;
+        for (Row row : sheet) {
+            count++;
+            operations.set(userSessionBo.getId() + ":upload:barcode", new BaseUploadMessage(sheet.getLastRowNum() + 1, count), 10L, TimeUnit.MINUTES);
+            if (count == 1) {
+                row.createCell(errorCellNum).setCellValue("错误信息");
+                continue;
+            }
+            try {
+                //获取数据
+                String code = ExcelReadUtil.getString(row.getCell(0));
+                String goodsCode = ExcelReadUtil.getString(row.getCell(1));
+                String colorCode = ExcelReadUtil.getString(row.getCell(2));
+                String colorName = ExcelReadUtil.getString(row.getCell(3));
+                String sizeName = ExcelReadUtil.getString(row.getCell(4));
+
+                if (StringUtils.isBlank(code) || StringUtils.isBlank(goodsCode) || StringUtils.isBlank(colorCode) || StringUtils.isBlank(sizeName)) {
+                    ExcelReadUtil.addErrorToRow(row, errorCellNum, "缺少必要数据");
+                    success = false;
                     continue;
                 }
-                try {
-                    //获取数据
-                    String code = ExcelReadUtil.getString(row.getCell(0));
-                    String goodsCode = ExcelReadUtil.getString(row.getCell(1));
-                    String colorCode = ExcelReadUtil.getString(row.getCell(2));
-                    String colorName = ExcelReadUtil.getString(row.getCell(3));
-                    String sizeName = ExcelReadUtil.getString(row.getCell(4));
 
-                    if (StringUtils.isBlank(code) || StringUtils.isBlank(goodsCode) || StringUtils.isBlank(colorCode) || StringUtils.isBlank(sizeName)) {
-                        ExcelReadUtil.addErrorToRow(row, errorCellNum, "缺少必要数据");
-                        success = false;
-                        continue;
-                    }
-
-                    //验证条形码是否存在
-                    if (barCodeDao.findByCode(code) != null) {
-                        ExcelReadUtil.addErrorToRow(row, errorCellNum, "条形码已经存在");
-                        success = false;
-                        continue;
-                    }
-                    //判断货号是否存在
-                    GoodsPo g = goodsDao.findByCode(goodsCode);
-                    if (g != null) {
-                        ExcelReadUtil.addErrorToRow(row, errorCellNum, "货号不存在");
-                        success = false;
-                        continue;
-                    }
-                    //验证颜色
-                    GoodsColorPo goodsColorPo = uploadValidateService.validateGoodsColor(g.getId(), colorCode, colorName, row, errorCellNum);
-                    if (goodsColorPo == null) {
-                        success = false;
-                        continue;
-                    }
-                    //验证尺码
-                    DictSizePo dictSizePo = uploadValidateService.validateGoodsSize(g.getId(), sizeName, row, errorCellNum);
-                    if (dictSizePo == null) {
-                        success = false;
-                        continue;
-                    }
-                    BarCodePo po = new BarCodePo();
-                    po.setCode(code);
-                    po.setGoodsId(g.getId());
-                    po.setGoodsCode(g.getCode());
-                    po.setGoodsName(g.getName());
-                    po.setGoodsSizeId(dictSizePo.getId());
-                    po.setGoodsSizeName(dictSizePo.getName());
-                    po.setGoodsColorId(goodsColorPo.getColorId());
-                    po.setGoodsColorCode(goodsColorPo.getColorCode());
-                    po.setGoodsColorName(goodsColorPo.getColorName());
-                    if (!list.contains(po)) {
-                        list.add(po);
-                    }
-                } catch (MessageException e) {
+                //验证条形码是否存在
+                if (barCodeDao.findByCode(code) != null || list.stream().filter(b -> b.getCode().equals(code)).count() > 0) {
+                    ExcelReadUtil.addErrorToRow(row, errorCellNum, "条形码已经存在");
                     success = false;
-                    ExcelReadUtil.addErrorToRow(row, errorCellNum, e.getMessage());
-                    e.printStackTrace();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    continue;
                 }
-            }
-            if (success) {
-                barCodeDao.saveAll(list);
-                operations.set(userSessionBo.getId() + ":upload:barcode", new BaseUploadMessage(1, TimeUtil.useTime(startTime)), 10L, TimeUnit.MINUTES);
-            } else {
-                try (FileOutputStream outputStream = new FileOutputStream(erpFileTempUrl + "/" + userSessionBo.getToken() + ".xlsx")) {
-                    workbook.write(outputStream);
-                    outputStream.flush();
-                    operations.set(userSessionBo.getId() + ":upload:barcode", new BaseUploadMessage(userSessionBo.getToken() + ".xlsx", -1, TimeUtil.useTime(startTime)), 10L, TimeUnit.MINUTES);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                //判断货号是否存在
+                GoodsPo g = goodsDao.findByCode(goodsCode);
+                if (g == null) {
+                    ExcelReadUtil.addErrorToRow(row, errorCellNum, "货号不存在");
+                    success = false;
+                    continue;
                 }
+                //验证颜色
+                GoodsColorPo goodsColorPo = uploadValidateService.validateGoodsColor(g.getId(), colorCode, colorName, row, errorCellNum);
+                if (goodsColorPo == null) {
+                    success = false;
+                    continue;
+                }
+                //验证尺码
+                DictSizePo dictSizePo = uploadValidateService.validateGoodsSize(g.getSizeGroupId(), sizeName, row, errorCellNum);
+                if (dictSizePo == null) {
+                    success = false;
+                    continue;
+                }
+                BarCodePo po = new BarCodePo();
+                po.setCode(code);
+                po.setGoodsId(g.getId());
+                po.setGoodsCode(g.getCode());
+                po.setGoodsName(g.getName());
+                po.setGoodsSizeId(dictSizePo.getId());
+                po.setGoodsSizeName(dictSizePo.getName());
+                po.setGoodsColorId(goodsColorPo.getColorId());
+                po.setGoodsColorCode(goodsColorPo.getColorCode());
+                po.setGoodsColorName(goodsColorPo.getColorName());
+                if (!list.contains(po)) {
+                    list.add(po);
+                }
+            } catch (MessageException e) {
+                success = false;
+                ExcelReadUtil.addErrorToRow(row, errorCellNum, e.getMessage());
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Throwable e) {
-            operations.set(userSessionBo.getId() + ":upload:barcode", new BaseUploadMessage(-1, TimeUtil.useTime(startTime), e.getMessage()), 10L, TimeUnit.MINUTES);
-            e.printStackTrace();
+        }
+        if (success) {
+            barCodeDao.saveAll(list);
+            operations.set(userSessionBo.getId() + ":upload:barcode", new BaseUploadMessage(1, TimeUtil.useTime(startTime)), 10L, TimeUnit.MINUTES);
+        } else {
+            try (FileOutputStream outputStream = new FileOutputStream(erpFileTempUrl + "/" + userSessionBo.getToken() + ".xlsx")) {
+                workbook.write(outputStream);
+                outputStream.flush();
+                operations.set(userSessionBo.getId() + ":upload:barcode", new BaseUploadMessage(userSessionBo.getToken() + ".xlsx", -1, TimeUtil.useTime(startTime)), 10L, TimeUnit.MINUTES);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

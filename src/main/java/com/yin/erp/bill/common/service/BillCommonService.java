@@ -1,9 +1,11 @@
 package com.yin.erp.bill.common.service;
 
 import com.yin.erp.base.entity.vo.out.BackPageVo;
+import com.yin.erp.base.entity.vo.out.BaseUploadMessage;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
 import com.yin.erp.base.utils.CopyUtil;
+import com.yin.erp.base.utils.TimeUtil;
 import com.yin.erp.bill.common.dao.BaseBillDao;
 import com.yin.erp.bill.common.dao.BaseBillDetailDao;
 import com.yin.erp.bill.common.dao.BaseBillGoodsDao;
@@ -12,19 +14,17 @@ import com.yin.erp.bill.common.entity.vo.BillVo;
 import com.yin.erp.bill.common.entity.vo.in.*;
 import com.yin.erp.bill.common.enums.BillStatusEnum;
 import com.yin.erp.bill.order.entity.po.OrderDetailPo;
-import com.yin.erp.info.channel.dao.ChannelDao;
-import com.yin.erp.info.dict.dao.DictDao;
-import com.yin.erp.info.dict.dao.DictSizeDao;
-import com.yin.erp.info.goods.dao.GoodsDao;
-import com.yin.erp.info.supplier.dao.SupplierDao;
-import com.yin.erp.info.warehouse.dao.WarehouseDao;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,7 +34,9 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -48,17 +50,7 @@ import java.util.stream.Collectors;
 public class BillCommonService {
 
     @Autowired
-    private ChannelDao channelDao;
-    @Autowired
-    private SupplierDao supplierDao;
-    @Autowired
-    private WarehouseDao warehouseDao;
-    @Autowired
-    private GoodsDao goodsDao;
-    @Autowired
-    private DictDao dictDao;
-    @Autowired
-    private DictSizeDao dictSizeDao;
+    private RedisTemplate redisTemplate;
     @Value("${erp.file.temp.url}")
     private String erpFileTempUrl;
     @Autowired
@@ -307,7 +299,17 @@ public class BillCommonService {
 
     public void uploadBill(MultipartFile file, UserSessionBo userSessionBo, BillService billService, String redisKey, BaseBillDao parentBaseBillDao, BaseBillDao grandParentBaseBillDao) {
         try {
-            billCommonImportService.uploadBill(file, userSessionBo, billService, redisKey, parentBaseBillDao, grandParentBaseBillDao);
+            ValueOperations operations = redisTemplate.opsForValue();
+            LocalDateTime startTime = LocalDateTime.now();
+            try {
+                Workbook workbook = WorkbookFactory.create(file.getInputStream());
+                billCommonImportService.uploadBill(workbook, userSessionBo, billService, redisKey, parentBaseBillDao, grandParentBaseBillDao, startTime);
+            } catch (MessageException e) {
+                operations.set(userSessionBo.getId() + ":upload:bill:" + redisKey, new BaseUploadMessage(-1, TimeUtil.useTime(startTime), e.getMessage()), 10L, TimeUnit.MINUTES);
+            } catch (Throwable e) {
+                operations.set(userSessionBo.getId() + ":upload:bill:" + redisKey, new BaseUploadMessage(-1, TimeUtil.useTime(startTime), e.getMessage()), 10L, TimeUnit.MINUTES);
+                e.printStackTrace();
+            }
         } catch (Throwable e) {
             e.printStackTrace();
         }

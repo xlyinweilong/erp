@@ -3,7 +3,6 @@ package com.yin.erp.bill.common.service;
 import com.yin.erp.base.entity.vo.out.BaseUploadMessage;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
-import com.yin.erp.base.upload.UploadValidateService;
 import com.yin.erp.base.utils.ExcelReadUtil;
 import com.yin.erp.base.utils.TimeUtil;
 import com.yin.erp.bill.common.dao.BaseBillDao;
@@ -24,17 +23,17 @@ import com.yin.erp.info.supplier.dao.SupplierDao;
 import com.yin.erp.info.supplier.entity.po.SupplierPo;
 import com.yin.erp.info.warehouse.dao.WarehouseDao;
 import com.yin.erp.info.warehouse.entity.po.WarehousePo;
+import com.yin.erp.upload.UploadValidateService;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileOutputStream;
 import java.math.BigDecimal;
@@ -391,170 +390,163 @@ public class BillCommonImportService {
     /**
      * 上传单据复用
      *
-     * @param file
+     * @param workbook
      * @param userSessionBo
      * @param billService
      * @param redisKey
      */
-    public void uploadBill(MultipartFile file, UserSessionBo userSessionBo, BillService billService, String redisKey, BaseBillDao parentBaseBillDao, BaseBillDao grandParentBaseBillDao) throws Throwable {
+    @Async
+    public void uploadBill(Workbook workbook, UserSessionBo userSessionBo, BillService billService, String redisKey, BaseBillDao parentBaseBillDao, BaseBillDao grandParentBaseBillDao, LocalDateTime startTime) throws Throwable {
         ValueOperations operations = redisTemplate.opsForValue();
-        LocalDateTime startTime = LocalDateTime.now();
-        try {
-            Workbook workbook = WorkbookFactory.create(file.getInputStream());
-            Sheet sheet = workbook.getSheetAt(0);
-            int count = 0;
-            //准备数据，多个单据
-            List<BillVo> list = new ArrayList<>();
-            //中间状态
-            boolean success = true;
-            int errorCellNum = getErrorCellNum(billService);
-            for (Row row : sheet) {
-                count++;
-                operations.set(userSessionBo.getId() + ":upload:bill:" + redisKey, new BaseUploadMessage(sheet.getLastRowNum() + 1, count), 10L, TimeUnit.MINUTES);
-                if (count == 1) {
-                    row.createCell(errorCellNum).setCellValue("错误信息");
+        Sheet sheet = workbook.getSheetAt(0);
+        int count = 0;
+        //准备数据，多个单据
+        List<BillVo> list = new ArrayList<>();
+        //中间状态
+        boolean success = true;
+        int errorCellNum = getErrorCellNum(billService);
+        for (Row row : sheet) {
+            count++;
+            operations.set(userSessionBo.getId() + ":upload:bill:" + redisKey, new BaseUploadMessage(sheet.getLastRowNum() + 1, count), 10L, TimeUnit.MINUTES);
+            if (count == 1) {
+                row.createCell(errorCellNum).setCellValue("错误信息");
+                continue;
+            }
+            try {
+                //获取数据
+                String manualCode = ExcelReadUtil.getString(row.getCell(0));
+                Date date = ExcelReadUtil.getDate(row.getCell(1));
+                String gradParentBillCode = getExcelString(billService, row, "BillGrandParentBillCode");
+                String parentBillCode = getExcelString(billService, row, "BillParentBillCode");
+                String channelCode = getExcelString(billService, row, "BillChannelCode");
+                String toChannelCode = getExcelString(billService, row, "BillToChannelCode");
+                String supplierCode = getExcelString(billService, row, "BillSupplierCode");
+                String warehouseCode = getExcelString(billService, row, "BillWarehouseCode");
+                String goodsCode = getExcelString(billService, row, "BillGoodsCode");
+                String goodsColorCode = getExcelString(billService, row, "BillGoodsColorCode");
+                String goodsColorName = getExcelString(billService, row, "BillGoodsColorName");
+                String goodsSizeName = getExcelString(billService, row, "BillGoodsSizeName");
+                BigDecimal price = getExcelBigDecimal(billService, row, "BillPrice");
+                Integer billCount = getExcelInteger(billService, row, "BillBillCount");
+
+                if (date == null || manualCode == null) {
+                    ExcelReadUtil.addErrorToRow(row, errorCellNum, "缺少必要数据");
+                    success = false;
                     continue;
                 }
-                try {
-                    //获取数据
-                    String manualCode = ExcelReadUtil.getString(row.getCell(0));
-                    Date date = ExcelReadUtil.getDate(row.getCell(1));
-                    String gradParentBillCode = getExcelString(billService, row, "BillGrandParentBillCode");
-                    String parentBillCode = getExcelString(billService, row, "BillParentBillCode");
-                    String channelCode = getExcelString(billService, row, "BillChannelCode");
-                    String toChannelCode = getExcelString(billService, row, "BillToChannelCode");
-                    String supplierCode = getExcelString(billService, row, "BillSupplierCode");
-                    String warehouseCode = getExcelString(billService, row, "BillWarehouseCode");
-                    String goodsCode = getExcelString(billService, row, "BillGoodsCode");
-                    String goodsColorCode = getExcelString(billService, row, "BillGoodsColorCode");
-                    String goodsColorName = getExcelString(billService, row, "BillGoodsColorName");
-                    String goodsSizeName = getExcelString(billService, row, "BillGoodsSizeName");
-                    BigDecimal price = getExcelBigDecimal(billService, row, "BillPrice");
-                    Integer billCount = getExcelInteger(billService, row, "BillBillCount");
 
-                    if (date == null || manualCode == null) {
-                        ExcelReadUtil.addErrorToRow(row, errorCellNum, "缺少必要数据");
-                        success = false;
-                        continue;
-                    }
-
-                    //数据VO
-                    BillVo vo = null;
-                    List<BillGoodsVo> billGoodsList = null;
-                    //根据手工单号获取单子
-                    Optional<BillVo> optionalVo = list.stream().filter(r -> r.getManualCode().equals(manualCode)).findFirst();
-                    if (optionalVo.isPresent()) {
-                        vo = optionalVo.get();
-                        billGoodsList = vo.getGoodsList();
-                    } else {
-                        vo = new BillVo();
-                        vo.setStatus(BillStatusEnum.PENDING.name());
-                        vo.setManualCode(manualCode);
-                        billGoodsList = new ArrayList<>();
-                        vo.setGoodsList(billGoodsList);
-                        list.add(vo);
-                    }
-
-                    //如果没设置设置，设置一个时间
-                    if (vo.getBillDate() == null) {
-                        vo.setBillDate(date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
-                    }
-
-                    //通过上上游单据设置
-                    if (!setGrandParent(vo, gradParentBillCode, row, errorCellNum, grandParentBaseBillDao)) {
-                        success = false;
-                        continue;
-                    }
-
-                    //通过上游单据设置
-                    if (!setParent(vo, parentBillCode, row, errorCellNum, parentBaseBillDao)) {
-                        success = false;
-                        continue;
-                    }
-
-                    //设置供应商、仓库、渠道
-                    if (!setSupplierAndWarehouseAndChannel(vo, supplierCode, warehouseCode, channelCode, toChannelCode, row, errorCellNum)) {
-                        success = false;
-                    }
-
-                    //判断是否匹配货号、颜色、内长、尺码
-                    GoodsPo goodsPo = goodsDao.findByCode(goodsCode);
-                    if (goodsPo == null) {
-                        ExcelReadUtil.addErrorToRow(row, errorCellNum, "货号不存在");
-                        continue;
-                    }
-                    //颜色
-                    GoodsColorPo goodsColorPo = uploadValidateService.validateGoodsColor(goodsPo.getId(), goodsColorCode, goodsColorName, row, errorCellNum);
-                    if (goodsColorPo == null) {
-                        success = false;
-                        continue;
-                    }
-                    String colorId = goodsColorPo.getColorId();
-                    //验证尺码
-                    DictSizePo dictSizePo = uploadValidateService.validateGoodsSize(goodsPo.getSizeGroupId(), goodsSizeName, row, errorCellNum);
-                    if (dictSizePo == null) {
-                        success = false;
-                        continue;
-                    }
-                    //重复校验
-                    if (billGoodsList.stream().filter(g -> g.getDetail() != null && g.getGoodsId().equals(goodsPo.getId())
-                            && g.getDetail().stream().filter(d -> d.getColorId().equals(colorId) && d.getSizeId().equals(dictSizePo.getId())).count() > 0).count() > 0) {
-                        ExcelReadUtil.addErrorToRow(row, errorCellNum, "货号、颜色、内长、尺码在文件中已经存在");
-                        success = false;
-                    }
-                    if (price == null) {
-                        price = goodsPo.getTagPrice1();
-                    }
-                    if (price.compareTo(BigDecimal.ZERO) < 0) {
-                        ExcelReadUtil.addErrorToRow(row, errorCellNum, "单价不能小于0");
-                        success = false;
-                    }
-                    if (price.scale() > 2) {
-                        ExcelReadUtil.addErrorToRow(row, errorCellNum, "单价最多保留2位小数");
-                        success = false;
-                    }
-                    if (billCount < 1) {
-                        ExcelReadUtil.addErrorToRow(row, errorCellNum, "数量必须大于0");
-                        success = false;
-                    }
-                    Optional<BillGoodsVo> billGoodsOptional = billGoodsList.stream().filter(g -> g.getGoodsId().equals(goodsPo.getId())).findFirst();
-                    BillGoodsVo billGoodsVo = null;
-                    List<BillDetailVo> detailList = null;
-                    if (billGoodsOptional.isPresent()) {
-                        billGoodsVo = billGoodsOptional.get();
-                        detailList = billGoodsVo.getDetail();
-                    } else {
-                        billGoodsVo = new BillGoodsVo();
-                        billGoodsVo.setGoodsCode(goodsPo.getCode());
-                        billGoodsVo.setGoodsId(goodsPo.getId());
-                        billGoodsVo.setGoodsName(goodsPo.getName());
-                        billGoodsVo.setPrice(price);
-                        billGoodsVo.setTagPrice(goodsPo.getTagPrice1());
-                        billGoodsList.add(billGoodsVo);
-                        detailList = new ArrayList<>();
-                        billGoodsVo.setDetail(detailList);
-                    }
-                    BillDetailVo billDetailVo = new BillDetailVo();
-                    billDetailVo.setSizeId(dictSizePo.getId());
-                    billDetailVo.setColorId(goodsColorPo.getColorId());
-                    billDetailVo.setBillCount(billCount);
-                    detailList.add(billDetailVo);
-                } catch (MessageException e) {
-                    ExcelReadUtil.addErrorToRow(row, errorCellNum, e.getMessage());
-                    success = false;
-                } catch (Exception e) {
-                    success = false;
-                    e.printStackTrace();
+                //数据VO
+                BillVo vo = null;
+                List<BillGoodsVo> billGoodsList = null;
+                //根据手工单号获取单子
+                Optional<BillVo> optionalVo = list.stream().filter(r -> r.getManualCode().equals(manualCode)).findFirst();
+                if (optionalVo.isPresent()) {
+                    vo = optionalVo.get();
+                    billGoodsList = vo.getGoodsList();
+                } else {
+                    vo = new BillVo();
+                    vo.setStatus(BillStatusEnum.PENDING.name());
+                    vo.setManualCode(manualCode);
+                    billGoodsList = new ArrayList<>();
+                    vo.setGoodsList(billGoodsList);
+                    list.add(vo);
                 }
+
+                //如果没设置设置，设置一个时间
+                if (vo.getBillDate() == null) {
+                    vo.setBillDate(date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                }
+
+                //通过上上游单据设置
+                if (!setGrandParent(vo, gradParentBillCode, row, errorCellNum, grandParentBaseBillDao)) {
+                    success = false;
+                    continue;
+                }
+
+                //通过上游单据设置
+                if (!setParent(vo, parentBillCode, row, errorCellNum, parentBaseBillDao)) {
+                    success = false;
+                    continue;
+                }
+
+                //设置供应商、仓库、渠道
+                if (!setSupplierAndWarehouseAndChannel(vo, supplierCode, warehouseCode, channelCode, toChannelCode, row, errorCellNum)) {
+                    success = false;
+                }
+
+                //判断是否匹配货号、颜色、内长、尺码
+                GoodsPo goodsPo = goodsDao.findByCode(goodsCode);
+                if (goodsPo == null) {
+                    ExcelReadUtil.addErrorToRow(row, errorCellNum, "货号不存在");
+                    continue;
+                }
+                //颜色
+                GoodsColorPo goodsColorPo = uploadValidateService.validateGoodsColor(goodsPo.getId(), goodsColorCode, goodsColorName, row, errorCellNum);
+                if (goodsColorPo == null) {
+                    success = false;
+                    continue;
+                }
+                String colorId = goodsColorPo.getColorId();
+                //验证尺码
+                DictSizePo dictSizePo = uploadValidateService.validateGoodsSize(goodsPo.getSizeGroupId(), goodsSizeName, row, errorCellNum);
+                if (dictSizePo == null) {
+                    success = false;
+                    continue;
+                }
+                //重复校验
+                if (billGoodsList.stream().filter(g -> g.getDetail() != null && g.getGoodsId().equals(goodsPo.getId())
+                        && g.getDetail().stream().filter(d -> d.getColorId().equals(colorId) && d.getSizeId().equals(dictSizePo.getId())).count() > 0).count() > 0) {
+                    ExcelReadUtil.addErrorToRow(row, errorCellNum, "货号、颜色、内长、尺码在文件中已经存在");
+                    success = false;
+                }
+                if (price == null) {
+                    price = goodsPo.getTagPrice1();
+                }
+                if (price.compareTo(BigDecimal.ZERO) < 0) {
+                    ExcelReadUtil.addErrorToRow(row, errorCellNum, "单价不能小于0");
+                    success = false;
+                }
+                if (price.scale() > 2) {
+                    ExcelReadUtil.addErrorToRow(row, errorCellNum, "单价最多保留2位小数");
+                    success = false;
+                }
+                if (billCount < 1) {
+                    ExcelReadUtil.addErrorToRow(row, errorCellNum, "数量必须大于0");
+                    success = false;
+                }
+                Optional<BillGoodsVo> billGoodsOptional = billGoodsList.stream().filter(g -> g.getGoodsId().equals(goodsPo.getId())).findFirst();
+                BillGoodsVo billGoodsVo = null;
+                List<BillDetailVo> detailList = null;
+                if (billGoodsOptional.isPresent()) {
+                    billGoodsVo = billGoodsOptional.get();
+                    detailList = billGoodsVo.getDetail();
+                } else {
+                    billGoodsVo = new BillGoodsVo();
+                    billGoodsVo.setGoodsCode(goodsPo.getCode());
+                    billGoodsVo.setGoodsId(goodsPo.getId());
+                    billGoodsVo.setGoodsName(goodsPo.getName());
+                    billGoodsVo.setPrice(price);
+                    billGoodsVo.setTagPrice(goodsPo.getTagPrice1());
+                    billGoodsList.add(billGoodsVo);
+                    detailList = new ArrayList<>();
+                    billGoodsVo.setDetail(detailList);
+                }
+                BillDetailVo billDetailVo = new BillDetailVo();
+                billDetailVo.setSizeId(dictSizePo.getId());
+                billDetailVo.setColorId(goodsColorPo.getColorId());
+                billDetailVo.setBillCount(billCount);
+                detailList.add(billDetailVo);
+            } catch (MessageException e) {
+                ExcelReadUtil.addErrorToRow(row, errorCellNum, e.getMessage());
+                success = false;
+            } catch (Exception e) {
+                success = false;
+                e.printStackTrace();
             }
-            //写入数据库
-            this.saveData(success, list, billService, userSessionBo, operations, redisKey, startTime, workbook);
-        } catch (MessageException e) {
-            operations.set(userSessionBo.getId() + ":upload:bill:" + redisKey, new BaseUploadMessage(-1, TimeUtil.useTime(startTime), e.getMessage()), 10L, TimeUnit.MINUTES);
-        } catch (Throwable e) {
-            operations.set(userSessionBo.getId() + ":upload:bill:" + redisKey, new BaseUploadMessage(-1, TimeUtil.useTime(startTime), e.getMessage()), 10L, TimeUnit.MINUTES);
-            e.printStackTrace();
         }
+        //写入数据库
+        this.saveData(success, list, billService, userSessionBo, operations, redisKey, startTime, workbook);
+
     }
 
     /**

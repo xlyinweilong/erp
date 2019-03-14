@@ -3,27 +3,41 @@ package com.yin.erp.activity.controller;
 import com.yin.erp.activity.dao.*;
 import com.yin.erp.activity.entity.po.*;
 import com.yin.erp.activity.entity.vo.ActivityVo;
+import com.yin.erp.activity.service.ActivityService;
 import com.yin.erp.base.controller.BaseJson;
 import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
+import com.yin.erp.base.entity.vo.out.BaseUploadMessage;
 import com.yin.erp.base.exceptions.MessageException;
+import com.yin.erp.base.feign.user.bo.UserSessionBo;
 import com.yin.erp.base.utils.GenerateUtil;
+import com.yin.erp.base.utils.TimeUtil;
 import com.yin.erp.info.channel.dao.ChannelDao;
 import com.yin.erp.info.channel.entity.po.ChannelPo;
 import com.yin.erp.info.dict.dao.DictDao;
 import com.yin.erp.info.dict.entity.po.DictPo;
 import com.yin.erp.info.goods.dao.GoodsDao;
 import com.yin.erp.info.goods.entity.po.GoodsPo;
+import com.yin.erp.info.marketpoint.dao.MarketPointDao;
+import com.yin.erp.info.marketpoint.entity.po.MarketPointPo;
+import com.yin.erp.user.user.service.LoginService;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.criteria.Predicate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 促销活动
@@ -57,6 +71,14 @@ public class ActivityController {
     private ActivityRuleGoodsDao activityRuleGoodsDao;
     @Autowired
     private ActivityRuleRangeDao activityRuleRangeDao;
+    @Autowired
+    private MarketPointDao marketPointDao;
+    @Autowired
+    private LoginService userService;
+    @Autowired
+    private RedisTemplate redisTemplate;
+    @Autowired
+    private ActivityService activityService;
 
     /**
      * 保存
@@ -80,7 +102,13 @@ public class ActivityController {
             po.setExecuteWeek(StringUtils.join(vo.getExecuteWeek(), ","));
         }
         po.setPriority(vo.getPriority());
-        po.setPoints(vo.getPoints());
+        po.setMarketPointId(null);
+        po.setMarketPointCode(null);
+        if (StringUtils.isNotBlank(vo.getMarketPointId())) {
+            MarketPointPo marketPointPo = marketPointDao.findById(vo.getMarketPointId()).get();
+            po.setMarketPointId(marketPointPo.getId());
+            po.setMarketPointCode(marketPointPo.getCode());
+        }
         po.setStartDate(vo.getStartDate());
         po.setType(vo.getType());
         po.setStatus(vo.getStatus());
@@ -257,7 +285,8 @@ public class ActivityController {
         vo.setRuleType(po.getRuleType());
         vo.setMarks(po.getMarks());
         vo.setName(po.getName());
-        vo.setPoints(po.getPoints());
+        vo.setMarketPointId(po.getMarketPointId());
+        vo.setMarketPointCode(po.getMarketPointCode());
         vo.setStartDate(po.getStartDate());
         vo.setStatus(po.getStatus());
         vo.setPriority(po.getPriority());
@@ -291,5 +320,55 @@ public class ActivityController {
         }
         return BaseJson.getSuccess();
     }
+
+
+    /**
+     * 上传促销货品
+     *
+     * @param file
+     * @param request
+     * @return
+     * @throws Exception
+     */
+    @PostMapping(value = "/upload_rule_price_promotion")
+    public BaseJson uploadRulePricePromotion(@RequestParam("file") MultipartFile file, javax.servlet.http.HttpServletRequest request) throws Exception {
+        UserSessionBo userSessionBo = userService.getUserSession(request);
+        ValueOperations operations = redisTemplate.opsForValue();
+        LocalDateTime startTime = LocalDateTime.now();
+        operations.set(userSessionBo.getId() + ":upload:activity", new BaseUploadMessage(), 10L, TimeUnit.MINUTES);
+        try {
+            Workbook workbook = WorkbookFactory.create(file.getInputStream());
+            activityService.uploadGoods(workbook, userSessionBo, startTime, true);
+        } catch (Throwable e) {
+            operations.set(userSessionBo.getId() + ":upload:activity", new BaseUploadMessage(-1, TimeUtil.useTime(startTime), e.getMessage()), 10L, TimeUnit.MINUTES);
+            e.printStackTrace();
+        }
+        return BaseJson.getSuccess("文件上传成功");
+    }
+
+    /**
+     * 上传货品
+     *
+     * @param file
+     * @param request
+     * @return
+     * @throws Exception
+     */
+    @PostMapping(value = "/upload_goods")
+    public BaseJson uploadGoods(@RequestParam("file") MultipartFile file, javax.servlet.http.HttpServletRequest request) throws Exception {
+        UserSessionBo userSessionBo = userService.getUserSession(request);
+        ValueOperations operations = redisTemplate.opsForValue();
+        LocalDateTime startTime = LocalDateTime.now();
+        operations.set(userSessionBo.getId() + ":upload:activity", new BaseUploadMessage(), 10L, TimeUnit.MINUTES);
+        try {
+            Workbook workbook = WorkbookFactory.create(file.getInputStream());
+            activityService.uploadGoods(workbook, userSessionBo, startTime, false);
+        } catch (Throwable e) {
+            operations.set(userSessionBo.getId() + ":upload:activity", new BaseUploadMessage(-1, TimeUtil.useTime(startTime), e.getMessage()), 10L, TimeUnit.MINUTES);
+            e.printStackTrace();
+        }
+        return BaseJson.getSuccess("文件上传成功");
+    }
+
 
 }

@@ -2,17 +2,25 @@ package com.yin.erp.info.barcode.controller;
 
 import com.yin.erp.base.controller.BaseJson;
 import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
+import com.yin.erp.base.entity.vo.out.BaseUploadMessage;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
+import com.yin.erp.base.utils.TimeUtil;
 import com.yin.erp.info.barcode.entity.vo.BarCodeVo;
 import com.yin.erp.info.barcode.service.BarCodeService;
 import com.yin.erp.user.user.service.LoginService;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 条形码制器
@@ -25,8 +33,6 @@ public class BarCodeController {
 
     @Autowired
     private BarCodeService barCodeService;
-    @Autowired
-    private LoginService loginService;
     @Autowired
     private LoginService userService;
     @Autowired
@@ -75,7 +81,7 @@ public class BarCodeController {
      */
     @GetMapping(value = "info_by_code")
     public BaseJson infoByCode(String code, HttpServletRequest request) throws MessageException {
-        return BaseJson.getSuccess(barCodeService.findByCode(code, loginService.getUserSession(request)));
+        return BaseJson.getSuccess(barCodeService.findByCode(code, userService.getUserSession(request)));
     }
 
     /**
@@ -98,22 +104,20 @@ public class BarCodeController {
      * @return
      * @throws Exception
      */
-    @PostMapping(value = "/upload_barcode")
+    @PostMapping(value = "/upload")
     public BaseJson updateBarCode(@RequestParam("file") MultipartFile file, javax.servlet.http.HttpServletRequest request) throws Exception {
-        barCodeService.updateBarCode(file, userService.getUserSession(request));
-        return BaseJson.getSuccess("文件上传成功");
-    }
-
-    /**
-     * 获取导入状态
-     *
-     * @param request
-     * @return
-     */
-    @GetMapping(value = "upload_status")
-    public BaseJson uploadStatus(javax.servlet.http.HttpServletRequest request) {
         UserSessionBo userSessionBo = userService.getUserSession(request);
-        return BaseJson.getSuccess(redisTemplate.opsForValue().get(userSessionBo.getId() + ":upload:barCode"));
+        ValueOperations operations = redisTemplate.opsForValue();
+        LocalDateTime startTime = LocalDateTime.now();
+        operations.set(userSessionBo.getId() + ":upload:barcode", new BaseUploadMessage(), 10L, TimeUnit.MINUTES);
+        try {
+            Workbook workbook = WorkbookFactory.create(file.getInputStream());
+            barCodeService.updateBarCode(workbook, userSessionBo,startTime);
+        } catch (Throwable e) {
+            operations.set(userSessionBo.getId() + ":upload:barcode", new BaseUploadMessage(-1, TimeUtil.useTime(startTime), e.getMessage()), 10L, TimeUnit.MINUTES);
+            e.printStackTrace();
+        }
+        return BaseJson.getSuccess("文件上传成功");
     }
 
 }

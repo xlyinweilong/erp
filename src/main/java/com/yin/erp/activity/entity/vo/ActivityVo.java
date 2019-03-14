@@ -6,7 +6,6 @@ import com.yin.erp.base.entity.vo.in.BasePageVo;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -29,7 +28,9 @@ public class ActivityVo extends BasePageVo {
 
     private Integer priority;
 
-    private BigDecimal points;
+    private String marketPointId;
+
+    private String marketPointCode;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date startDate;

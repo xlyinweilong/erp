@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * 会员等级
  *
@@ -34,4 +36,13 @@ public interface VipGradeDao extends JpaRepository<VipGradePo, String>, JpaSpeci
     @Modifying
     @Query("update VipGradePo t set t.defaultGrade = false")
     int updateAllDefaultGradeFalse();
+
+
+    /**
+     * 查询设置的会员等级
+     *
+     * @return
+     */
+    @Query("select t from VipGradePo t where t.indexDepth is not null order by t.indexDepth asc")
+    List<VipGradePo> findAllCanUserd();
 }

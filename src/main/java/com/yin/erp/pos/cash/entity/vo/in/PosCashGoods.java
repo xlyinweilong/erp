@@ -61,4 +61,8 @@ public class PosCashGoods {
 
     private String goodsYearId;
 
+    private String pointId;
+
+    private String pointCode;
+
 }

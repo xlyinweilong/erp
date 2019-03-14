@@ -5,9 +5,15 @@ import com.yin.erp.activity.entity.po.ActivityPo;
 import com.yin.erp.base.controller.BaseJson;
 import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.base.feign.user.bo.UserSessionBo;
+import com.yin.erp.info.channel.dao.ChannelDao;
+import com.yin.erp.pos.cash.dao.PosCashDetailDao;
+import com.yin.erp.pos.cash.entity.po.PosCashDetailPo;
 import com.yin.erp.pos.cash.entity.vo.in.PayVo;
+import com.yin.erp.pos.cash.entity.vo.in.PosSearchVo;
 import com.yin.erp.pos.cash.entity.vo.out.PosActivityVo;
+import com.yin.erp.pos.cash.entity.vo.out.PosSearchOutTotalVo;
 import com.yin.erp.pos.cash.entity.vo.out.PosVipVo;
+import com.yin.erp.pos.cash.service.CashSearchService;
 import com.yin.erp.pos.cash.service.CashService;
 import com.yin.erp.user.user.service.LoginService;
 import com.yin.erp.vip.grade.entity.po.VipGradePo;
@@ -17,6 +23,7 @@ import com.yin.erp.vip.info.entity.po.VipPo;
 import com.yin.erp.vip.integral.dao.VipIntegralToAmountDao;
 import com.yin.erp.vip.integral.entity.po.VipIntegralToAmountPo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -63,8 +70,29 @@ public class CashController {
     private ActivityGoodsDao activityGoodsDao;
     @Autowired
     private VipIntegralToAmountDao vipIntegralToAmountDao;
+    @Autowired
+    private PosCashDetailDao posCashDetailDao;
+    @Autowired
+    private ChannelDao channelDao;
+    @Autowired
+    private CashSearchService cashSearchService;
 
-    //查询销售
+    /**
+     * 查询销售
+     *
+     * @param posSearchVo
+     * @return
+     * @throws MessageException
+     */
+    @PostMapping(value = "pos_list")
+    public BaseJson posList(@RequestBody PosSearchVo posSearchVo, HttpServletRequest request) throws MessageException {
+        UserSessionBo user = loginService.getUserSession(request);
+        Page<PosCashDetailPo> page = cashSearchService.posList(posSearchVo, user);
+        //查询总计
+        PosSearchOutTotalVo posSearchOutTotalVo = cashSearchService.posTotal(posSearchVo, user);
+        posSearchOutTotalVo.setPage(page);
+        return BaseJson.getSuccess(posSearchOutTotalVo);
+    }
 
     /**
      * 查询会员
@@ -90,7 +118,7 @@ public class CashController {
         posVipVo.setGradeId(vipGradePo.getId());
         //等级多少积分为1元
         VipIntegralToAmountPo vipIntegralToAmountPo = vipIntegralToAmountDao.findByGradeId(vipGradePo.getId());
-        if(vipIntegralToAmountPo != null){
+        if (vipIntegralToAmountPo != null) {
             posVipVo.setIntegralToMoney(vipIntegralToAmountPo.getIntegral());
         }
         return BaseJson.getSuccess(posVipVo);
@@ -120,7 +148,7 @@ public class CashController {
             //渠道
             List<Predicate> predicatesChannel = new ArrayList<>();
             predicatesChannel.add(criteriaBuilder.equal(root.get("joinChannelType"), "ALL"));
-            if(activityIds.size() > 0){
+            if (activityIds.size() > 0) {
                 predicatesChannel.add(criteriaBuilder.in(root.get("id")).value(activityIds));
             }
             predicates.add(criteriaBuilder.or(predicatesChannel.toArray(new Predicate[predicatesChannel.size()])));

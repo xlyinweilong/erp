@@ -20,4 +20,12 @@ public interface ActivityVipDao extends JpaRepository<ActivityVipPo, String>, Jp
 
     List<ActivityVipPo> findByActivityId(String activityId);
 
+    /**
+     * 等级数量
+     *
+     * @param gradeId
+     * @return
+     */
+    Long countByGradeId(String gradeId);
+
 }

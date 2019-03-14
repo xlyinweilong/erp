@@ -32,4 +32,10 @@ public class ChannelPo extends BasePo {
     @Column(name = "group_name")
     private String groupName;
 
+    @Column(name = "market_point_id")
+    private String marketPointId;
+
+    @Column(name = "market_point_code")
+    private String marketPointCode;
+
 }

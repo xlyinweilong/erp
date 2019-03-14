@@ -8,6 +8,7 @@ import com.yin.erp.base.utils.GenerateUtil;
 import com.yin.erp.user.user.service.LoginService;
 import com.yin.erp.vip.coupon.dao.VipCouponDao;
 import com.yin.erp.vip.coupon.entity.po.VipCouponPo;
+import com.yin.erp.vip.coupon.entity.vo.in.CouponVo;
 import com.yin.erp.vip.info.dao.VipDao;
 import com.yin.erp.vip.info.entity.po.VipPo;
 import com.yin.erp.vip.integral.entity.vo.VipIntegralUpRuleVo;
@@ -45,27 +46,43 @@ public class VipCouponController {
     /**
      * 保存
      *
-     * @param po
+     * @param vo
      * @return
      * @throws MessageException
      */
     @PostMapping(value = "save", consumes = "application/json")
-    public BaseJson save(@RequestBody VipCouponPo po, HttpServletRequest request) throws MessageException {
+    public BaseJson save(@RequestBody CouponVo vo, HttpServletRequest request) throws MessageException {
         UserSessionBo user = loginService.getUserSession(request);
-        if (StringUtils.isBlank(po.getId())) {
-            po.setCode("DYJ" + GenerateUtil.createSerialNumber());
-            po.setId(GenerateUtil.createUUID());
+        if (vo.getCreateCount() == null) {
+            vo.setCreateCount(1);
         }
-//        po.setCreateUserId(user.getId());
-//        po.setCreateUserName(user.getName());
-        if (StringUtils.isNotBlank(po.getVipId())) {
-            VipPo vip = vipDao.findById(po.getVipId()).get();
-            po.setVipName(vip.getName());
-            po.setVipCode(vip.getCode());
-        } else {
+        for (int i = 0; i < vo.getCreateCount(); i++) {
+            VipCouponPo po = new VipCouponPo();
+            if (StringUtils.isNotBlank(vo.getId())) {
+                po = vipCouponDao.findById(vo.getId()).get();
+                if (po.isUsed()) {
+                    throw new MessageException(po.getCode() + "已经使用，无法修改");
+                }
+            } else {
+                po.setCode("DYJ" + GenerateUtil.createSerialNumber());
+            }
+            po.setStartDate(vo.getStartDate());
+            po.setEndDate(vo.getEndDate());
+            po.setAmount(vo.getAmount());
+            po.setConditionAmount(vo.getConditionAmount());
+            po.setDiscount(vo.getDiscount());
+            po.setType(vo.getType());
+            po.setVipName(null);
+            po.setVipCode(null);
             po.setVipId(null);
+            if (StringUtils.isNotBlank(po.getVipId())) {
+                VipPo vip = vipDao.findById(po.getVipId()).get();
+                po.setVipName(vip.getName());
+                po.setVipCode(vip.getCode());
+                po.setVipId(vip.getId());
+            }
+            vipCouponDao.save(po);
         }
-        vipCouponDao.save(po);
         return BaseJson.getSuccess();
     }
 

@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -40,11 +39,6 @@ public class ActivityPo extends BasePo {
     @Column(name = "type")
     private String type;
 
-    /**
-     * 扣点
-     */
-    @Column(name = "points")
-    private BigDecimal points = BigDecimal.ZERO;
 
     /**
      * 活动描述
@@ -83,6 +77,12 @@ public class ActivityPo extends BasePo {
      */
     @Column(name = "priority")
     private Integer priority;
+
+    @Column(name = "market_point_id")
+    private String marketPointId;
+
+    @Column(name = "market_point_code")
+    private String marketPointCode;
 
     /**
      * 参加的渠道

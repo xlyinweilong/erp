@@ -15,4 +15,11 @@ import javax.annotation.Resource;
 @Resource
 public interface EmployDao extends JpaRepository<EmployPo, String>, JpaSpecificationExecutor {
 
+    /**
+     * 根据编号查询
+     *
+     * @param code
+     * @return
+     */
+    EmployPo findByCode(String code);
 }
