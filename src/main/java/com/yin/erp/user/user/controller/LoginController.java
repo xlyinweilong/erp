@@ -1,13 +1,14 @@
 package com.yin.erp.user.user.controller;
 
-import com.yin.erp.base.anno.LoginAnno;
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.exceptions.MessageException;
-import com.yin.erp.base.feign.user.bo.UserSessionBo;
+import com.yin.common.anno.LoginAnno;
+import com.yin.common.controller.BaseJson;
+import com.yin.common.entity.bo.UserSessionBo;
+import com.yin.common.entity.vo.LoginUserVo;
+import com.yin.common.exceptions.MessageException;
+import com.yin.common.service.CommonLoginService;
 import com.yin.erp.user.role.dao.*;
 import com.yin.erp.user.user.dao.UserDao;
 import com.yin.erp.user.user.entity.po.UserPo;
-import com.yin.erp.user.user.entity.vo.in.LoginUserVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.validation.annotation.Validated;
@@ -17,7 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -43,6 +43,8 @@ public class LoginController {
     private RoleChannelGroupDao roleChannelGroupDao;
     @Autowired
     private RoleSupplierGroupDao roleSupplierGroupDao;
+    @Autowired
+    private CommonLoginService commonLoginService;
 
     /**
      * 登录
@@ -54,18 +56,21 @@ public class LoginController {
     @LoginAnno
     @PostMapping(value = "login", consumes = "application/json")
     public BaseJson login(@Validated @RequestBody LoginUserVo loginUserVo, HttpSession session) throws Exception {
+
+        BaseJson baseJson = commonLoginService.login(loginUserVo);
+        if (baseJson == null) {
+            throw new MessageException("登录中心错误！");
+        }
+        if (baseJson.getCode() == 1) {
+            throw new MessageException(baseJson.getMessage());
+        }
+        UserSessionBo bo = (UserSessionBo) baseJson.getData();
         UserPo user = userDao.findByAccount(loginUserVo.getUsername());
-        if (user == null) {
-            throw new MessageException("账号错误！");
-        }
-        if (!user.getPasswd().equals(loginUserVo.getPassword())) {
-            throw new MessageException("密码错误！");
-        }
-        UserSessionBo bo = new UserSessionBo();
-        String uuid = UUID.randomUUID().toString();
-        bo.setToken(uuid);
-        bo.setId(user.getId());
-        bo.setName(user.getName());
+//        String uuid = UUID.randomUUID().toString();
+//        bo.setToken(uuid);
+//        bo.setId(user.getId());
+//        bo.setName(user.getName());
+
         List<String> roles = new ArrayList<>();
         roles.add("admin");
         bo.setRoles(roles);
@@ -76,8 +81,8 @@ public class LoginController {
         bo.setChannelGroupIds(roleChannelGroupDao.findChannelGroupIdByRoleId(user.getRoleId()));
         bo.setWarehouseGroupIds(roleWarehouseGroupDao.findWarehouseGroupIdByRoleId(user.getRoleId()));
         bo.setSupplierGroupIds(roleSupplierGroupDao.findSupplierGroupIdByRoleId(user.getRoleId()));
-        redisTemplate.opsForValue().set(uuid, bo, 30L, TimeUnit.MINUTES);
-        session.setAttribute("user", bo);
+        redisTemplate.opsForValue().set(bo.getToken(), bo, 30L, TimeUnit.MINUTES);
+//        session.setAttribute("user", bo);
         return BaseJson.getSuccess("登录成功", bo);
     }
 

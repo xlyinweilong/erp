@@ -1,6 +1,6 @@
 package com.yin.erp.vip.common.vo;
 
-import com.yin.erp.base.entity.vo.in.BasePageVo;
+import com.yin.common.entity.vo.in.BasePageVo;
 import lombok.Getter;
 import lombok.Setter;
 

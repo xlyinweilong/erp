@@ -1,6 +1,6 @@
 package com.yin.erp.base.utils;
 
-import com.yin.erp.base.exceptions.MessageException;
+import com.yin.common.exceptions.MessageException;
 import org.apache.commons.beanutils.PropertyUtils;
 
 import java.beans.PropertyDescriptor;

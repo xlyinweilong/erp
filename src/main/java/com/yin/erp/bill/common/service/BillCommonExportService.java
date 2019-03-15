@@ -1,6 +1,6 @@
 package com.yin.erp.bill.common.service;
 
-import com.yin.erp.base.entity.vo.out.BackPageVo;
+import com.yin.common.entity.vo.out.BackPageVo;
 import com.yin.erp.bill.common.dao.BaseBillDetailDao;
 import com.yin.erp.bill.common.dao.BaseBillGoodsDao;
 import com.yin.erp.bill.common.entity.po.BillDetailPo;

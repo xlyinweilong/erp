@@ -1,7 +1,8 @@
 package com.yin.erp.base.interceptor;
 
-import com.yin.erp.base.anno.LoginAnno;
-import com.yin.erp.user.user.service.LoginService;
+import com.yin.common.anno.LoginAnno;
+import com.yin.common.entity.bo.UserSessionBo;
+import com.yin.common.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.ModelAndView;
@@ -38,7 +39,9 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         Method method = handlerMethod.getMethod();
         LoginAnno loginAnno = method.getAnnotation(LoginAnno.class);
         if (loginAnno == null) {
-            if (userService.getUserSession(request) == null) {
+            UserSessionBo userSessionBo = userService.getUserSession(request);
+            //判断userSessionBo是否含有角色，没有获取一下
+            if (userSessionBo == null) {
                 response.setContentType("application/json;charset=utf-8");
                 response.getWriter().write("{\"code\": 50008,\"message\":\"已经登出\"}");
                 return false;

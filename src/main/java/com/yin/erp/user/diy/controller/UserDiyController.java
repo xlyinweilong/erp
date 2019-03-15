@@ -1,11 +1,11 @@
 package com.yin.erp.user.diy.controller;
 
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.feign.user.bo.UserSessionBo;
+import com.yin.common.controller.BaseJson;
+import com.yin.common.entity.bo.UserSessionBo;
+import com.yin.common.service.LoginService;
 import com.yin.erp.user.diy.dao.UserDiyDao;
 import com.yin.erp.user.diy.entity.po.UserDiyPo;
 import com.yin.erp.user.diy.entity.vo.in.DiyVo;
-import com.yin.erp.user.user.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;

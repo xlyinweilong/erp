@@ -1,7 +1,7 @@
 package com.yin.erp.info.dict.controller;
 
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.exceptions.MessageException;
+import com.yin.common.controller.BaseJson;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.info.dict.entity.vo.DictVo;
 import com.yin.erp.info.dict.entity.vo.in.DictDeleteVo;
 import com.yin.erp.info.dict.enums.*;

@@ -1,7 +1,7 @@
 package com.yin.erp.pos.cash.entity.vo.out;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.yin.erp.base.entity.vo.BaseVo;
+import com.yin.common.entity.vo.BaseVo;
 import lombok.Getter;
 import lombok.Setter;
 

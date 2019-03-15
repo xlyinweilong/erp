@@ -1,7 +1,7 @@
 package com.yin.erp.user.user.entity.po;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.yin.erp.base.entity.po.BasePo;
+import com.yin.common.entity.po.BasePo;
 import com.yin.erp.user.diy.entity.po.UserDiyPo;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +16,7 @@ import java.util.List;
 @Table(name = "u_user")
 @Getter
 @Setter
-public class UserPo extends BasePo{
+public class UserPo extends BasePo {
 
     @Column(name="name")
     private String name;

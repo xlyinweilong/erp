@@ -1,6 +1,6 @@
 package com.yin.erp.vip.grade.service;
 
-import com.yin.erp.base.exceptions.MessageException;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.vip.grade.dao.VipGradeDao;
 import com.yin.erp.vip.grade.entity.po.VipGradePo;
 import org.springframework.beans.factory.annotation.Autowired;

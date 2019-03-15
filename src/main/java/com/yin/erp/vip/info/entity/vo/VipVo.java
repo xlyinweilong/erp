@@ -2,7 +2,7 @@ package com.yin.erp.vip.info.entity.vo;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.yin.erp.base.entity.vo.in.BasePageVo;
+import com.yin.common.entity.vo.in.BasePageVo;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;

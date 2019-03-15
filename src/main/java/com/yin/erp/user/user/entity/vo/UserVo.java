@@ -1,7 +1,7 @@
 package com.yin.erp.user.user.entity.vo;
 
 
-import com.yin.erp.base.entity.vo.in.BasePageVo;
+import com.yin.common.entity.vo.in.BasePageVo;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;

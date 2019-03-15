@@ -1,14 +1,14 @@
 package com.yin.erp.info.marketpoint.controller;
 
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
-import com.yin.erp.base.exceptions.MessageException;
-import com.yin.erp.base.feign.user.bo.UserSessionBo;
+import com.yin.common.controller.BaseJson;
+import com.yin.common.entity.bo.UserSessionBo;
+import com.yin.common.entity.vo.in.BaseDeleteVo;
+import com.yin.common.exceptions.MessageException;
+import com.yin.common.service.LoginService;
 import com.yin.erp.info.marketpoint.dao.MarketPointDao;
 import com.yin.erp.info.marketpoint.entity.po.MarketPointPo;
 import com.yin.erp.info.marketpoint.entity.vo.MarketPointVo;
 import com.yin.erp.info.marketpoint.service.MarketPointService;
-import com.yin.erp.user.user.service.LoginService;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

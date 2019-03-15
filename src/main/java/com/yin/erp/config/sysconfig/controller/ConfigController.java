@@ -1,6 +1,6 @@
 package com.yin.erp.config.sysconfig.controller;
 
-import com.yin.erp.base.controller.BaseJson;
+import com.yin.common.controller.BaseJson;
 import com.yin.erp.config.sysconfig.dao.ConfigDao;
 import com.yin.erp.config.sysconfig.entity.po.ConfigPo;
 import com.yin.erp.config.sysconfig.service.ConfigService;

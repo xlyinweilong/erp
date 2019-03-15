@@ -1,9 +1,9 @@
 package com.yin.erp.user.role.controller;
 
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
-import com.yin.erp.base.entity.vo.out.BackPageVo;
-import com.yin.erp.base.exceptions.MessageException;
+import com.yin.common.controller.BaseJson;
+import com.yin.common.entity.vo.in.BaseDeleteVo;
+import com.yin.common.entity.vo.out.BackPageVo;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.base.utils.CopyUtil;
 import com.yin.erp.user.role.dao.RoleDao;
 import com.yin.erp.user.role.entity.po.RolePo;

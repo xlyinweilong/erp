@@ -1,7 +1,7 @@
 package com.yin.erp.pos.cash.controller;
 
-import com.yin.erp.base.anno.LoginAnno;
-import com.yin.erp.base.exceptions.MessageException;
+import com.yin.common.anno.LoginAnno;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.pos.cash.dao.PosCashDao;
 import com.yin.erp.pos.cash.dao.PosCashDetailDao;
 import com.yin.erp.pos.cash.dao.PosCashPaymentDao;

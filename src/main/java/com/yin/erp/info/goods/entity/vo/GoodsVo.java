@@ -1,7 +1,7 @@
 package com.yin.erp.info.goods.entity.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.yin.erp.base.entity.vo.in.BasePageVo;
+import com.yin.common.entity.vo.in.BasePageVo;
 import com.yin.erp.info.dict.entity.bo.DictSizeBo;
 import com.yin.erp.info.goods.entity.po.GoodsColorPo;
 import lombok.Getter;

@@ -1,7 +1,7 @@
 package com.yin.erp.user.role.controller;
 
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.exceptions.MessageException;
+import com.yin.common.controller.BaseJson;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.user.role.dao.RoleDao;
 import com.yin.erp.user.role.entity.po.RolePo;
 import com.yin.erp.user.user.dao.UserDao;

@@ -1,8 +1,8 @@
 package com.yin.erp.bill.common.controller;
 
 
-import com.yin.erp.base.anno.LoginAnno;
-import com.yin.erp.base.exceptions.MessageException;
+import com.yin.common.anno.LoginAnno;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.bill.common.dao.BaseBillDao;
 import com.yin.erp.bill.common.dao.BaseBillDetailDao;
 import com.yin.erp.bill.common.dao.BaseBillGoodsDao;

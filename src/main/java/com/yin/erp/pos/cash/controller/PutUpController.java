@@ -1,12 +1,12 @@
 package com.yin.erp.pos.cash.controller;
 
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.exceptions.MessageException;
-import com.yin.erp.base.feign.user.bo.UserSessionBo;
+import com.yin.common.controller.BaseJson;
+import com.yin.common.entity.bo.UserSessionBo;
+import com.yin.common.exceptions.MessageException;
+import com.yin.common.service.LoginService;
 import com.yin.erp.pos.cash.dao.PosUserPutUpDao;
 import com.yin.erp.pos.cash.entity.po.PosUserPutUpPo;
 import com.yin.erp.pos.cash.entity.vo.in.PutUpInVo;
-import com.yin.erp.user.user.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;

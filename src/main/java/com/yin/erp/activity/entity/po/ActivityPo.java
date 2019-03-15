@@ -2,7 +2,7 @@ package com.yin.erp.activity.entity.po;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.yin.erp.base.entity.po.BasePo;
+import com.yin.common.entity.po.BasePo;
 import lombok.Getter;
 import lombok.Setter;
 

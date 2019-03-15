@@ -1,12 +1,12 @@
 package com.yin.erp.stock.controller;
 
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.feign.user.bo.UserSessionBo;
+import com.yin.common.controller.BaseJson;
+import com.yin.common.entity.bo.UserSessionBo;
+import com.yin.common.service.LoginService;
 import com.yin.erp.stock.dao.StockWarehouseDao;
 import com.yin.erp.stock.entity.po.StockWarehousePo;
 import com.yin.erp.stock.entity.vo.StockVo;
 import com.yin.erp.stock.service.StockWarehouseService;
-import com.yin.erp.user.user.service.LoginService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

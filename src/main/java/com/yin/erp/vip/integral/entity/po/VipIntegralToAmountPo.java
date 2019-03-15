@@ -1,6 +1,6 @@
 package com.yin.erp.vip.integral.entity.po;
 
-import com.yin.erp.base.entity.po.BaseDataPo;
+import com.yin.common.entity.po.BaseDataPo;
 import lombok.Getter;
 import lombok.Setter;
 

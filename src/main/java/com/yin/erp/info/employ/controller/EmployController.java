@@ -1,7 +1,7 @@
 package com.yin.erp.info.employ.controller;
 
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
+import com.yin.common.controller.BaseJson;
+import com.yin.common.entity.vo.in.BaseDeleteVo;
 import com.yin.erp.info.employ.entity.vo.EmployVo;
 import com.yin.erp.info.employ.service.EmployService;
 import org.springframework.beans.factory.annotation.Autowired;

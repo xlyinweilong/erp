@@ -1,9 +1,9 @@
 package com.yin.erp.vip.grade.controller;
 
+import com.yin.common.controller.BaseJson;
+import com.yin.common.entity.vo.in.BaseDeleteVo;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.activity.dao.ActivityVipDao;
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
-import com.yin.erp.base.exceptions.MessageException;
 import com.yin.erp.vip.grade.dao.VipGradeDao;
 import com.yin.erp.vip.grade.entity.po.VipGradePo;
 import com.yin.erp.vip.grade.entity.vo.VipGradeVo;

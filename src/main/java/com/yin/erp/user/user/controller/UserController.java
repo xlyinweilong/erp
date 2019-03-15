@@ -1,9 +1,9 @@
 package com.yin.erp.user.user.controller;
 
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
-import com.yin.erp.base.entity.vo.out.BackPageVo;
-import com.yin.erp.base.exceptions.MessageException;
+import com.yin.common.controller.BaseJson;
+import com.yin.common.entity.vo.in.BaseDeleteVo;
+import com.yin.common.entity.vo.out.BackPageVo;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.base.utils.CopyUtil;
 import com.yin.erp.user.role.dao.RoleDao;
 import com.yin.erp.user.user.dao.UserDao;
@@ -16,7 +16,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.persistence.criteria.Predicate;
 import java.util.ArrayList;

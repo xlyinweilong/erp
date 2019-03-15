@@ -1,7 +1,7 @@
 package com.yin.erp.bill.common.entity.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.yin.erp.base.entity.vo.in.BasePageVo;
+import com.yin.common.entity.vo.in.BasePageVo;
 import com.yin.erp.bill.common.entity.vo.in.BillGoodsVo;
 import com.yin.erp.bill.common.enums.BillStatusEnum;
 import lombok.Getter;

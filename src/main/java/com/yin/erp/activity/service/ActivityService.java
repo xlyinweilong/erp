@@ -1,8 +1,8 @@
 package com.yin.erp.activity.service;
 
-import com.yin.erp.base.entity.vo.out.BaseUploadMessage;
-import com.yin.erp.base.exceptions.MessageException;
-import com.yin.erp.base.feign.user.bo.UserSessionBo;
+import com.yin.common.entity.bo.UserSessionBo;
+import com.yin.common.entity.vo.out.BaseUploadMessage;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.base.utils.ExcelReadUtil;
 import com.yin.erp.base.utils.TimeUtil;
 import com.yin.erp.info.goods.dao.GoodsDao;
@@ -45,7 +45,7 @@ public class ActivityService {
     private String erpFileTempUrl;
 
     @Async
-    public void uploadGoods(Workbook workbook, UserSessionBo userSessionBo, LocalDateTime startTime,boolean hasPrice) {
+    public void uploadGoods(Workbook workbook, UserSessionBo userSessionBo, LocalDateTime startTime, boolean hasPrice) {
         ValueOperations operations = redisTemplate.opsForValue();
         Sheet sheet = workbook.getSheetAt(0);
         int count = 0;

@@ -1,8 +1,8 @@
 package com.yin.erp.info.marketpoint.service;
 
-import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
-import com.yin.erp.base.exceptions.MessageException;
-import com.yin.erp.base.feign.user.bo.UserSessionBo;
+import com.yin.common.entity.bo.UserSessionBo;
+import com.yin.common.entity.vo.in.BaseDeleteVo;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.base.utils.CopyUtil;
 import com.yin.erp.info.marketpoint.dao.MarketPointDao;
 import com.yin.erp.info.marketpoint.entity.po.MarketPointPo;

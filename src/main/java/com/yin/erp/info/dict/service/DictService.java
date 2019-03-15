@@ -1,7 +1,7 @@
 package com.yin.erp.info.dict.service;
 
-import com.yin.erp.base.entity.vo.out.BackPageVo;
-import com.yin.erp.base.exceptions.MessageException;
+import com.yin.common.entity.vo.out.BackPageVo;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.bill.common.dao.BaseBillDetailDao;
 import com.yin.erp.info.barcode.dao.BarCodeDao;
 import com.yin.erp.info.channel.dao.ChannelDao;
@@ -78,7 +78,7 @@ public class DictService {
         String oldName = po.getName();
         po.setType1(vo.getType1());
         po.setType2(vo.getType2());
-        po.setCode(vo.getCode());
+        po.setCode(StringUtils.trimToEmpty(vo.getCode()));
         po.setName(vo.getName());
         dictDao.save(po);
         if (DictGoodsType.SIZE_GROUP.name().equals(po.getType2())) {

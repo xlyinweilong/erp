@@ -1,7 +1,7 @@
 package com.yin.erp.vip.balance.controller;
 
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.exceptions.MessageException;
+import com.yin.common.controller.BaseJson;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.vip.balance.dao.VipBalanceLogDao;
 import com.yin.erp.vip.balance.entity.po.VipBalanceLogPo;
 import com.yin.erp.vip.common.vo.BaseVipSearchVo;

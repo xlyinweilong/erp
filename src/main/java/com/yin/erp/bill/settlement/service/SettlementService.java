@@ -1,9 +1,9 @@
 package com.yin.erp.bill.settlement.service;
 
 
-import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
-import com.yin.erp.base.exceptions.MessageException;
-import com.yin.erp.base.utils.GenerateUtil;
+import com.yin.common.entity.vo.in.BaseDeleteVo;
+import com.yin.common.exceptions.MessageException;
+import com.yin.common.utils.GenerateUtil;
 import com.yin.erp.bill.channelinventory.dao.ChannelInventoryDao;
 import com.yin.erp.bill.channelinventory.entity.po.ChannelInventoryPo;
 import com.yin.erp.bill.channelloss.dao.ChannelLossDao;

@@ -1,7 +1,7 @@
 package com.yin.erp.bill.common.service;
 
-import com.yin.erp.base.exceptions.MessageException;
-import com.yin.erp.base.feign.user.bo.UserSessionBo;
+import com.yin.common.entity.bo.UserSessionBo;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.bill.common.entity.po.BillPo;
 import com.yin.erp.bill.common.entity.vo.BillVo;
 

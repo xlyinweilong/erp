@@ -1,10 +1,10 @@
 package com.yin.erp.bill.warehouse2supplier.service;
 
 
-import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
-import com.yin.erp.base.entity.vo.out.BackPageVo;
-import com.yin.erp.base.exceptions.MessageException;
-import com.yin.erp.base.feign.user.bo.UserSessionBo;
+import com.yin.common.entity.bo.UserSessionBo;
+import com.yin.common.entity.vo.in.BaseDeleteVo;
+import com.yin.common.entity.vo.out.BackPageVo;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.bill.common.entity.po.BillDetailPo;
 import com.yin.erp.bill.common.entity.po.BillPo;
 import com.yin.erp.bill.common.entity.vo.BillVo;

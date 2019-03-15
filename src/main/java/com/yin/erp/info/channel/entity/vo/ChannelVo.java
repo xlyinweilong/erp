@@ -1,6 +1,6 @@
 package com.yin.erp.info.channel.entity.vo;
 
-import com.yin.erp.base.entity.vo.in.BasePageVo;
+import com.yin.common.entity.vo.in.BasePageVo;
 import com.yin.erp.config.sysconfig.entity.po.ConfigChannelPo;
 import com.yin.erp.config.sysconfig.entity.po.ConfigPo;
 import lombok.Getter;

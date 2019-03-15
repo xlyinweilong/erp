@@ -1,6 +1,6 @@
 package com.yin.erp.info.dict.entity.po;
 
-import com.yin.erp.base.entity.po.BaseDataPo;
+import com.yin.common.entity.po.BaseDataPo;
 import lombok.Getter;
 import lombok.Setter;
 

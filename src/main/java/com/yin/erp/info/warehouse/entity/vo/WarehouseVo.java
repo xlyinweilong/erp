@@ -1,8 +1,8 @@
 package com.yin.erp.info.warehouse.entity.vo;
 
-import com.yin.erp.base.entity.vo.in.BasePageVo;
-import com.yin.erp.config.sysconfig.entity.po.ConfigWarehousePo;
+import com.yin.common.entity.vo.in.BasePageVo;
 import com.yin.erp.config.sysconfig.entity.po.ConfigPo;
+import com.yin.erp.config.sysconfig.entity.po.ConfigWarehousePo;
 import lombok.Getter;
 import lombok.Setter;
 

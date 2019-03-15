@@ -1,8 +1,8 @@
 package com.yin.erp.vip.integral.controller;
 
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.exceptions.MessageException;
-import com.yin.erp.base.utils.GenerateUtil;
+import com.yin.common.controller.BaseJson;
+import com.yin.common.exceptions.MessageException;
+import com.yin.common.utils.GenerateUtil;
 import com.yin.erp.vip.integral.dao.VipIntegralToAmountDao;
 import com.yin.erp.vip.integral.entity.po.VipIntegralToAmountPo;
 import org.springframework.beans.factory.annotation.Autowired;

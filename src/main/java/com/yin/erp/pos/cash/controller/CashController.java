@@ -1,10 +1,11 @@
 package com.yin.erp.pos.cash.controller;
 
+import com.yin.common.controller.BaseJson;
+import com.yin.common.entity.bo.UserSessionBo;
+import com.yin.common.exceptions.MessageException;
+import com.yin.common.service.LoginService;
 import com.yin.erp.activity.dao.*;
 import com.yin.erp.activity.entity.po.ActivityPo;
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.exceptions.MessageException;
-import com.yin.erp.base.feign.user.bo.UserSessionBo;
 import com.yin.erp.info.channel.dao.ChannelDao;
 import com.yin.erp.pos.cash.dao.PosCashDetailDao;
 import com.yin.erp.pos.cash.entity.po.PosCashDetailPo;
@@ -15,7 +16,6 @@ import com.yin.erp.pos.cash.entity.vo.out.PosSearchOutTotalVo;
 import com.yin.erp.pos.cash.entity.vo.out.PosVipVo;
 import com.yin.erp.pos.cash.service.CashSearchService;
 import com.yin.erp.pos.cash.service.CashService;
-import com.yin.erp.user.user.service.LoginService;
 import com.yin.erp.vip.grade.entity.po.VipGradePo;
 import com.yin.erp.vip.grade.service.VipGradeService;
 import com.yin.erp.vip.info.dao.VipDao;

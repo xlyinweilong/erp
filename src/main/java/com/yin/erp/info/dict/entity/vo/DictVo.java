@@ -1,6 +1,6 @@
 package com.yin.erp.info.dict.entity.vo;
 
-import com.yin.erp.base.entity.vo.in.BasePageVo;
+import com.yin.common.entity.vo.in.BasePageVo;
 import com.yin.erp.info.dict.entity.po.DictSizePo;
 import lombok.Getter;
 import lombok.Setter;

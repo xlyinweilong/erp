@@ -1,8 +1,8 @@
 package com.yin.erp.activity.entity.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.yin.common.entity.vo.in.BasePageVo;
 import com.yin.erp.activity.entity.po.*;
-import com.yin.erp.base.entity.vo.in.BasePageVo;
 import lombok.Getter;
 import lombok.Setter;
 

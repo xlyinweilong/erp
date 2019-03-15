@@ -1,6 +1,6 @@
 package com.yin.erp.info.goods.feign;
 
-import com.yin.erp.base.exceptions.MessageException;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.base.utils.CopyUtil;
 import com.yin.erp.info.goods.dao.GoodsDao;
 import com.yin.erp.info.goods.entity.bo.GoodsBo;

@@ -1,8 +1,8 @@
 package com.yin.erp.pos.cash.service;
 
-import com.yin.erp.base.exceptions.MessageException;
-import com.yin.erp.base.feign.user.bo.UserSessionBo;
-import com.yin.erp.base.utils.GenerateUtil;
+import com.yin.common.entity.bo.UserSessionBo;
+import com.yin.common.exceptions.MessageException;
+import com.yin.common.utils.GenerateUtil;
 import com.yin.erp.bill.common.enums.BillStatusEnum;
 import com.yin.erp.info.channel.dao.ChannelDao;
 import com.yin.erp.info.channel.entity.po.ChannelPo;

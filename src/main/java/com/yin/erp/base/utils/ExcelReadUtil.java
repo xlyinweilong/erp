@@ -1,7 +1,7 @@
 package com.yin.erp.base.utils;
 
 
-import com.yin.erp.base.exceptions.MessageException;
+import com.yin.common.exceptions.MessageException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;

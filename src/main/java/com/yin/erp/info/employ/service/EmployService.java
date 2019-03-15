@@ -1,7 +1,7 @@
 package com.yin.erp.info.employ.service;
 
-import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
-import com.yin.erp.base.exceptions.MessageException;
+import com.yin.common.entity.vo.in.BaseDeleteVo;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.info.employ.dao.EmployDao;
 import com.yin.erp.info.employ.entity.po.EmployPo;
 import com.yin.erp.info.employ.entity.vo.EmployVo;

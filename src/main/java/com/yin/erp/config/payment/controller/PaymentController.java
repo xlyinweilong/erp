@@ -1,8 +1,8 @@
 package com.yin.erp.config.payment.controller;
 
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
-import com.yin.erp.base.exceptions.MessageException;
+import com.yin.common.controller.BaseJson;
+import com.yin.common.entity.vo.in.BaseDeleteVo;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.config.payment.dao.PaymentDao;
 import com.yin.erp.config.payment.entity.po.PaymentPo;
 import com.yin.erp.pos.cash.dao.PosCashPaymentDao;

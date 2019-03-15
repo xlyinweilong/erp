@@ -1,9 +1,9 @@
 package com.yin.erp.bill.settlement.controller;
 
 
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
-import com.yin.erp.base.exceptions.MessageException;
+import com.yin.common.controller.BaseJson;
+import com.yin.common.entity.vo.in.BaseDeleteVo;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.bill.settlement.dao.SettlementDao;
 import com.yin.erp.bill.settlement.entity.po.SettlementPo;
 import com.yin.erp.bill.settlement.entity.vo.SearchSettlementVo;

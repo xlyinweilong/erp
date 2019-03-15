@@ -1,6 +1,6 @@
 package com.yin.erp.stock.service;
 
-import com.yin.erp.base.exceptions.MessageException;
+import com.yin.common.exceptions.MessageException;
 import com.yin.erp.bill.common.entity.po.BillDetailPo;
 import com.yin.erp.config.sysconfig.service.ConfigService;
 import com.yin.erp.info.dict.dao.DictDao;

@@ -1,10 +1,10 @@
 package com.yin.erp.info.supplier.controller;
 
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.entity.vo.in.BaseDeleteVo;
+import com.yin.common.controller.BaseJson;
+import com.yin.common.entity.vo.in.BaseDeleteVo;
+import com.yin.common.service.LoginService;
 import com.yin.erp.info.supplier.entity.vo.SupplierVo;
 import com.yin.erp.info.supplier.service.SupplierService;
-import com.yin.erp.user.user.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;

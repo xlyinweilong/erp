@@ -1,10 +1,10 @@
 package com.yin.erp.bill.common.controller;
 
 
-import com.yin.erp.base.controller.BaseJson;
-import com.yin.erp.base.entity.vo.out.BaseUploadMessage;
-import com.yin.erp.base.feign.user.bo.UserSessionBo;
-import com.yin.erp.user.user.service.LoginService;
+import com.yin.common.controller.BaseJson;
+import com.yin.common.entity.bo.UserSessionBo;
+import com.yin.common.entity.vo.out.BaseUploadMessage;
+import com.yin.common.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
