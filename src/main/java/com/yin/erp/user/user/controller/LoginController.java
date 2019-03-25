@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -68,12 +66,8 @@ public class LoginController {
         UserPo user = userDao.findByAccount(loginUserVo.getUsername());
 //        String uuid = UUID.randomUUID().toString();
 //        bo.setToken(uuid);
-//        bo.setId(user.getId());
+//        bo.setId(user.getId());roles
 //        bo.setName(user.getName());
-
-        List<String> roles = new ArrayList<>();
-        roles.add("admin");
-        bo.setRoles(roles);
         //获取角色菜单权限
         bo.setPowers(rolePowerDao.findPowerIdByRoleId(user.getRoleId()));
         //获取角色的数据范围

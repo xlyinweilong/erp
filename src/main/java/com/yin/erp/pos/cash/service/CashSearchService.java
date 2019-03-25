@@ -112,7 +112,7 @@ public class CashSearchService {
         if (StringUtils.isNotBlank(posSearchVo.getGoodsSizeName())) {
             predicateList.add(builder.equal(root.get("goodsSizeName"), posSearchVo.getGoodsSizeName()));
         }
-        //渠道权限
+        //渠道权限@JsonFormat
         Join join = root.join("channelPo",JoinType.LEFT);
         Predicate p1 = builder.isNull(join.get("groupId"));
         if (!user.getChannelGroupIds().isEmpty()) {
