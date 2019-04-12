@@ -14,4 +14,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface VipCouponDao extends JpaRepository<VipCouponPo, String>, JpaSpecificationExecutor {
 
+    VipCouponPo findByCode(String code);
+
 }

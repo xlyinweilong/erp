@@ -100,6 +100,12 @@ public class PosCashDetailPo extends BasePo {
     private BigDecimal price = BigDecimal.ZERO;
 
     /**
+     * 零售价
+     */
+    @Column(name = "sale_price")
+    private BigDecimal salePrice = BigDecimal.ZERO;
+
+    /**
      * 吊牌价
      */
     @Column(name = "tag_price")
@@ -182,6 +188,12 @@ public class PosCashDetailPo extends BasePo {
      */
     @Column(name = "point")
     private BigDecimal point;
+
+    /**
+     * 退回数量
+     */
+    @Column(name = "back_count")
+    private Integer backCount = 0;
 
     @JsonIgnore
     @ManyToOne(cascade = {}, optional = false, fetch = FetchType.LAZY)

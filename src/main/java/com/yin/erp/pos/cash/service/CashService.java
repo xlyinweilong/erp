@@ -8,9 +8,11 @@ import com.yin.erp.info.channel.dao.ChannelDao;
 import com.yin.erp.info.channel.entity.po.ChannelPo;
 import com.yin.erp.info.marketpoint.dao.MarketPointDao;
 import com.yin.erp.info.marketpoint.entity.po.MarketPointPo;
+import com.yin.erp.pos.cash.dao.PosCashCouponDao;
 import com.yin.erp.pos.cash.dao.PosCashDao;
 import com.yin.erp.pos.cash.dao.PosCashDetailDao;
 import com.yin.erp.pos.cash.dao.PosCashPaymentDao;
+import com.yin.erp.pos.cash.entity.po.PosCashCouponPo;
 import com.yin.erp.pos.cash.entity.po.PosCashDetailPo;
 import com.yin.erp.pos.cash.entity.po.PosCashPaymentPo;
 import com.yin.erp.pos.cash.entity.po.PosCashPo;
@@ -19,6 +21,8 @@ import com.yin.erp.pos.cash.entity.vo.in.PosCashGoods;
 import com.yin.erp.pos.cash.entity.vo.in.PosCashPayment;
 import com.yin.erp.stock.entity.bo.StockBo;
 import com.yin.erp.stock.service.StockChannelService;
+import com.yin.erp.vip.coupon.dao.VipCouponDao;
+import com.yin.erp.vip.coupon.entity.po.VipCouponPo;
 import com.yin.erp.vip.info.dao.VipDao;
 import com.yin.erp.vip.info.entity.po.VipPo;
 import com.yin.erp.vip.info.service.VipService;
@@ -61,6 +65,10 @@ public class CashService {
     private VipService vipService;
     @Autowired
     private VipDao vipDao;
+    @Autowired
+    private VipCouponDao vipCouponDao;
+    @Autowired
+    private PosCashCouponDao posCashCouponDao;
 
 
     /**
@@ -69,13 +77,14 @@ public class CashService {
      * @param payVo
      * @param user
      */
-    public void pay(PayVo payVo, UserSessionBo user) throws MessageException {
+    public PosCashPo pay(PayVo payVo, UserSessionBo user) throws MessageException {
         //保存数据
-        this.savePo(payVo, user);
+        PosCashPo po = this.savePo(payVo, user);
         //调整库存
         for (PosCashGoods goodsVo : payVo.getGoodsList()) {
             stockChannelService.minus(new StockBo(payVo.getChannelId(), null, goodsVo.getId(), goodsVo.getGoodsColorId(), goodsVo.getGoodsSizeId(), goodsVo.getBillCount()));
         }
+        return po;
     }
 
     /**
@@ -84,7 +93,7 @@ public class CashService {
      * @param payVo
      * @param user
      */
-    public void savePo(PayVo payVo, UserSessionBo user) throws MessageException {
+    public PosCashPo savePo(PayVo payVo, UserSessionBo user) throws MessageException {
         Date now = new Date();
         //保存单据
         PosCashPo po = new PosCashPo();
@@ -114,6 +123,20 @@ public class CashService {
         //保存详情
         Integer totalXp = 0;
         Integer totalIntegral = 0;
+        if (!payVo.getCouponList().isEmpty()) {
+            for (VipCouponPo vipCouponPo : payVo.getCouponList()) {
+                VipCouponPo vipCouponPoData = vipCouponDao.findById(vipCouponPo.getId()).get();
+                vipCouponPoData.setUsed(true);
+                vipCouponDao.save(vipCouponPoData);
+                //保存待用卷
+                PosCashCouponPo posCashCouponPo = new PosCashCouponPo();
+                posCashCouponPo.setBillDate(po.getBillDate());
+                posCashCouponPo.setBillId(po.getId());
+                posCashCouponPo.setCouponAmount(vipCouponPoData.getAmount());
+                posCashCouponPo.setCouponId(vipCouponPoData.getId());
+                posCashCouponDao.save(posCashCouponPo);
+            }
+        }
         for (PosCashGoods goodsVo : payVo.getGoodsList()) {
             PosCashDetailPo detailPo = new PosCashDetailPo();
             detailPo.setStatus(BillStatusEnum.AUDITED.name());
@@ -122,6 +145,7 @@ public class CashService {
             detailPo.setActivityId(StringUtils.trimToNull(goodsVo.getActivityId()));
             detailPo.setVipDiscount(goodsVo.getVipDiscount());
             detailPo.setAmount(goodsVo.getAmount());
+            detailPo.setSalePrice(goodsVo.getSalePrice());
             detailPo.setPrice(goodsVo.getPrice());
             detailPo.setTagPrice(goodsVo.getTagPrice());
             detailPo.setBillCount(goodsVo.getBillCount());
@@ -142,14 +166,26 @@ public class CashService {
             if (po.getVipId() != null) {
                 //获取积分
                 Integer integralRule = vipIntegralRuleService.calculateIntegral(payVo.getVipGradeId(), now, detailPo.getGoodsId(), goodsVo.getGoodsBrandId(), goodsVo.getGoodsCategoryId(), goodsVo.getGoodsSeasonId(), goodsVo.getGoodsYearId());
-                Integer integral = goodsVo.getPrice().multiply(BigDecimal.valueOf(integralRule)).intValue() * goodsVo.getBillCount();
+                Integer integral = goodsVo.getPrice().multiply(BigDecimal.valueOf(integralRule)).intValue();
                 detailPo.setIntegral(integral);
-                totalIntegral += integral;
+                totalIntegral += integral * goodsVo.getBillCount();
+                //积分日志
+                if (integral > 0) {
+                    for (int i = 0; i < goodsVo.getBillCount(); i++) {
+                        vipService.addIntegralLog(vipPo.getId(), vipPo.getCode(), integral, "购买增加积分：" + po.getCode() + "；货号：" + detailPo.getGoodsCode());
+                    }
+                }
                 //获得经验
                 Integer xpRule = vipXpRuleService.calculateXp(payVo.getVipGradeId(), now, detailPo.getGoodsId(), goodsVo.getGoodsBrandId(), goodsVo.getGoodsCategoryId(), goodsVo.getGoodsSeasonId(), goodsVo.getGoodsYearId());
-                Integer xp = goodsVo.getPrice().multiply(BigDecimal.valueOf(xpRule)).intValue() * goodsVo.getBillCount();
+                Integer xp = goodsVo.getPrice().multiply(BigDecimal.valueOf(xpRule)).intValue();
                 detailPo.setXp(xp);
-                totalXp += xp;
+                totalXp += xp * goodsVo.getBillCount();
+                //经验日志
+                if (xp > 0) {
+                    for (int i = 0; i < goodsVo.getBillCount(); i++) {
+                        vipService.addXpLog(vipPo.getId(), vipPo.getCode(), xp, "购买增加经验：" + po.getCode() + "；货号：" + detailPo.getGoodsCode());
+                    }
+                }
             }
             //扣点
             String pointId = null;
@@ -200,15 +236,14 @@ public class CashService {
         //增加积分和经验，及其相关的日志
         if (totalIntegral > 0) {
             vipPo.setIntegral(vipPo.getIntegral() + totalIntegral);
-            vipService.addIntegralLog(vipPo.getId(), vipPo.getCode(), totalIntegral, "购买增加积分：" + po.getCode());
         }
         if (totalXp > 0) {
             vipPo.setXpValue(vipPo.getXpValue() + totalXp);
-            vipService.addXpLog(vipPo.getId(), vipPo.getCode(), totalXp, "购买增加经验：" + po.getCode());
         }
         if (totalXp > 0 || totalIntegral > 0 || saveVipPo) {
             vipDao.save(vipPo);
         }
+        return po;
     }
 
 }

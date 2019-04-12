@@ -22,6 +22,8 @@ public class SearchBillVo extends BillVo {
 
     private String endBillDate;
 
+    private String channelId;
+
     private List<String> statusList;
 
 }

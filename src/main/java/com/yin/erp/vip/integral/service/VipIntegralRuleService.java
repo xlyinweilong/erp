@@ -39,7 +39,7 @@ public class VipIntegralRuleService {
         if (intergralRileList != null && !intergralRileList.isEmpty()) {
             for (VipIntegralRulePo vipIntegralRulePo : intergralRileList) {
                 if (vipIntegralRulePo.getVipIntegralRuleGoodsPoList() == null || vipIntegralRulePo.getVipIntegralRuleGoodsPoList().isEmpty()) {
-                    return vipIntegralRulePo.getPriority();
+                    return vipIntegralRulePo.getIntegral();
                 } else {
                     if (vipIntegralRulePo.getVipIntegralRuleGoodsPoList().stream().filter(g -> (g.getGoodsId() == null || g.getGoodsId().equals(goodsId))
                             && (g.getGoodsBrandId() == null || g.getGoodsBrandId().equals(goodsBrandId))
@@ -47,7 +47,7 @@ public class VipIntegralRuleService {
                             && (g.getGoodsSeasonId() == null || g.getGoodsSeasonId().equals(goodsSeasonId))
                             && (g.getGoodsYearId() == null || g.getGoodsYearId().equals(goodsYearId))
                     ).count() > 0L) {
-                        return vipIntegralRulePo.getPriority();
+                        return vipIntegralRulePo.getIntegral();
                     }
                 }
             }

@@ -1,5 +1,6 @@
 package com.yin.erp.pos.cash.entity.vo.in;
 
+import com.yin.erp.vip.coupon.entity.po.VipCouponPo;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -44,4 +45,9 @@ public class PayVo {
     private String channelName;
 
     private String channelCode;
+
+    /**
+     * 待用卷
+     */
+    private List<VipCouponPo> couponList;
 }

@@ -13,9 +13,13 @@ import com.yin.erp.info.goods.entity.po.GoodsPo;
 import com.yin.erp.info.goods.entity.vo.GoodsVo;
 import com.yin.erp.info.goods.entity.vo.out.Goods4BillSearchVo;
 import com.yin.erp.info.goods.service.GoodsService;
-import org.apache.poi.hssf.usermodel.*;
+import org.apache.poi.hssf.usermodel.HSSFRichTextString;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.streaming.SXSSFCell;
+import org.apache.poi.xssf.streaming.SXSSFRow;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -162,8 +166,8 @@ public class GoodsController {
         Page<GoodsPo> goodsPage = goodsService.findGoodsPage(vo, loginService.getUserSession(request));
         List<GoodsPo> list = goodsPage.getContent();
 
-        HSSFWorkbook workbook = new HSSFWorkbook();
-        HSSFSheet sheet = workbook.createSheet("信息表");
+        SXSSFWorkbook workbook = new SXSSFWorkbook(1000);
+        SXSSFSheet sheet = workbook.createSheet("信息表");
 
         //设置要导出的文件的名字
         String fileName = UUID.randomUUID().toString() + ".xls";
@@ -173,18 +177,18 @@ public class GoodsController {
 
         List<String> headers = Arrays.asList(new String[]{"货号", "名称", "尺码组", "品牌", "类别", "二级类别", "系列", "款型", "风格", "季节", "年份", "性别", "供应商编号", "吊牌价"});
 
-        HSSFRow row = sheet.createRow(0);
+        SXSSFRow row = sheet.createRow(0);
 
         int i = 0;
         for (String header : headers) {
-            HSSFCell cell = row.createCell(i++);
+            SXSSFCell cell = row.createCell(i++);
             HSSFRichTextString text = new HSSFRichTextString(header);
             cell.setCellValue(text);
         }
 
         for (GoodsPo goodsPo : list) {
             int j = 0;
-            HSSFRow row1 = sheet.createRow(rowNum);
+            SXSSFRow row1 = sheet.createRow(rowNum);
             row1.createCell(j++).setCellValue(goodsPo.getCode());
             row1.createCell(j++).setCellValue(goodsPo.getName());
             row1.createCell(j++).setCellValue(goodsPo.getSizeGroupName());

@@ -1,5 +1,6 @@
 package com.yin.erp.pos.cash.entity.po;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.yin.common.entity.po.BasePo;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,6 +27,7 @@ public class PosCashPo extends BasePo {
     /**
      * 单据时间
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Column(name = "bill_date")
     private Date billDate;
 
@@ -119,6 +121,12 @@ public class PosCashPo extends BasePo {
      */
     @Column(name = "vip_name")
     private String vipName;
+
+    /**
+     * 上级单据
+     */
+    @Column(name = "parent_id")
+    private String parentId;
 
 
 }

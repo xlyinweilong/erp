@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.criteria.Predicate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -75,8 +76,8 @@ public class VipCouponController {
             po.setVipName(null);
             po.setVipCode(null);
             po.setVipId(null);
-            if (StringUtils.isNotBlank(po.getVipId())) {
-                VipPo vip = vipDao.findById(po.getVipId()).get();
+            if (StringUtils.isNotBlank(vo.getVipId())) {
+                VipPo vip = vipDao.findById(vo.getVipId()).get();
                 po.setVipName(vip.getName());
                 po.setVipCode(vip.getCode());
                 po.setVipId(vip.getId());
@@ -119,6 +120,65 @@ public class VipCouponController {
             vipCouponDao.deleteById(id);
         }
         return BaseJson.getSuccess();
+    }
+
+
+    /**
+     * 我的待用卷
+     *
+     * @param vo
+     * @return
+     * @throws MessageException
+     */
+    @GetMapping(value = "my_list")
+    public BaseJson myList(VipIntegralUpRuleVo vo) throws MessageException {
+        Date now = new Date();
+        Page<VipCouponPo> page = vipCouponDao.findAll((root, criteriaQuery, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (StringUtils.isNotBlank(vo.getSearchKey())) {
+                predicates.add(criteriaBuilder.equal(root.get("code"), vo.getSearchKey()));
+            }
+            if (StringUtils.isNotBlank(vo.getVipId())) {
+                predicates.add(criteriaBuilder.equal(root.get("vipId"), vo.getVipId()));
+            }
+            if (vo.getUsed() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("used"), vo.getUsed()));
+            }
+            predicates.add(criteriaBuilder.or(criteriaBuilder.greaterThanOrEqualTo(root.get("endDate"), now), criteriaBuilder.isNull(root.get("endDate"))));
+            predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("startDate"), now));
+            return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
+        }, PageRequest.of(vo.getPageIndex() - 1, vo.getPageSize(), Sort.Direction.DESC, "createDate"));
+        return BaseJson.getSuccess(page);
+    }
+
+
+    /**
+     * 查询能使用的代用卷
+     *
+     * @param vo
+     * @return
+     * @throws MessageException
+     */
+    @GetMapping(value = "find_by_code_for_can_use")
+    public BaseJson findByCodeForCanUse(VipIntegralUpRuleVo vo) throws MessageException {
+        Date now = new Date();
+        VipCouponPo vipCouponPo = vipCouponDao.findByCode(vo.getCode());
+        if (vipCouponPo == null) {
+            throw new MessageException("代用卷编号不存在");
+        }
+        if (vipCouponPo.isUsed()) {
+            throw new MessageException("代用卷已经被使用");
+        }
+        if (vipCouponPo.getStartDate().after(now)) {
+            throw new MessageException("代用卷还未到开始使用的时间");
+        }
+        if (vipCouponPo.getEndDate() != null && vipCouponPo.getEndDate().before(now)) {
+            throw new MessageException("代用卷已经过期");
+        }
+        if (vipCouponPo.getVipId() != null && !vipCouponPo.getVipId().equals(vo.getVipId())) {
+            throw new MessageException("代用卷是别人的");
+        }
+        return BaseJson.getSuccess(vipCouponPo);
     }
 
 

@@ -19,6 +19,18 @@ public class VipIntegralUpRuleVo extends BaseVipSearchVo {
 
     private String id;
 
+    private String code;
+
+    /**
+     * 用户ID
+     */
+    private String vipId;
+
+    /**
+     * 是否使用过
+     */
+    private Boolean used;
+
     /**
      * 生效时间
      */

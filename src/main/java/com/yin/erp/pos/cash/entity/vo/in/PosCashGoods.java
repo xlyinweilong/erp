@@ -37,6 +37,8 @@ public class PosCashGoods {
 
     private BigDecimal tagPrice;
 
+    private BigDecimal salePrice;
+
     private Integer billCount;
 
     private String employId;

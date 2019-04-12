@@ -8,6 +8,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +40,7 @@ public class ExcelReadUtil {
             wb = new HSSFWorkbook(in);
         } else if (file.getName().endsWith(EXCEL_XLSX)) {
 //            wb = new XSSFWorkbook(in);
-            wb = new HSSFWorkbook(in);
+            wb = new XSSFWorkbook(in);
         }
         return wb;
     }

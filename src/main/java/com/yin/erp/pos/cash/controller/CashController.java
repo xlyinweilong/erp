@@ -7,9 +7,12 @@ import com.yin.common.service.LoginService;
 import com.yin.erp.activity.dao.*;
 import com.yin.erp.activity.entity.po.ActivityPo;
 import com.yin.erp.info.channel.dao.ChannelDao;
+import com.yin.erp.pos.cash.dao.PosCashDao;
 import com.yin.erp.pos.cash.dao.PosCashDetailDao;
 import com.yin.erp.pos.cash.entity.po.PosCashDetailPo;
+import com.yin.erp.pos.cash.entity.po.PosCashPo;
 import com.yin.erp.pos.cash.entity.vo.in.PayVo;
+import com.yin.erp.pos.cash.entity.vo.in.PosMyBillVo;
 import com.yin.erp.pos.cash.entity.vo.in.PosSearchVo;
 import com.yin.erp.pos.cash.entity.vo.out.PosActivityVo;
 import com.yin.erp.pos.cash.entity.vo.out.PosSearchOutTotalVo;
@@ -24,6 +27,7 @@ import com.yin.erp.vip.integral.dao.VipIntegralToAmountDao;
 import com.yin.erp.vip.integral.entity.po.VipIntegralToAmountPo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -72,6 +76,8 @@ public class CashController {
     private VipIntegralToAmountDao vipIntegralToAmountDao;
     @Autowired
     private PosCashDetailDao posCashDetailDao;
+    @Autowired
+    private PosCashDao posCashDao;
     @Autowired
     private ChannelDao channelDao;
     @Autowired
@@ -194,9 +200,27 @@ public class CashController {
     @PostMapping(value = "pay", consumes = "application/json")
     public BaseJson pay(@RequestBody PayVo payVo, HttpServletRequest request) throws Exception {
         UserSessionBo user = loginService.getUserSession(request);
-        cashService.pay(payVo, user);
-        return BaseJson.getSuccess();
+        return BaseJson.getSuccess(cashService.pay(payVo, user));
     }
 
 
+    /**
+     * 查询我得POS单据
+     *
+     * @param vo
+     * @return
+     * @throws MessageException
+     */
+    @GetMapping(value = "find_my_pos_bill")
+    public BaseJson findMyPosBill(PosMyBillVo vo, HttpServletRequest request) throws MessageException {
+        UserSessionBo user = loginService.getUserSession(request);
+        Page<PosCashPo> page = posCashDao.findAll((root, criteriaQuery, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(criteriaBuilder.equal(root.get("status"), "AUDITED"));
+            predicates.add(criteriaBuilder.equal(root.get("createUserId"), user.getId()));
+            predicates.add(criteriaBuilder.equal(root.get("channelId"), vo.getChannelId()));
+            return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
+        }, PageRequest.of(vo.getPageIndex() - 1, vo.getPageSize(), Sort.Direction.DESC, "createDate"));
+        return BaseJson.getSuccess(page);
+    }
 }

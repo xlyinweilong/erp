@@ -7,7 +7,11 @@ import com.yin.erp.bill.common.entity.po.BillDetailPo;
 import com.yin.erp.bill.common.entity.po.BillGoodsPo;
 import com.yin.erp.bill.common.entity.vo.BillVo;
 import com.yin.erp.bill.common.entity.vo.in.BaseBillExportVo;
-import org.apache.poi.hssf.usermodel.*;
+import org.apache.poi.hssf.usermodel.HSSFRichTextString;
+import org.apache.poi.xssf.streaming.SXSSFCell;
+import org.apache.poi.xssf.streaming.SXSSFRow;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,8 +55,8 @@ public class BillCommonExportService {
         vo.setPageIndex(1);
         vo.setPageSize(Integer.MAX_VALUE);
         BackPageVo<BillVo> list = billService.findBillPage(vo);
-        HSSFWorkbook workbook = new HSSFWorkbook();
-        HSSFSheet sheet = workbook.createSheet("信息表");
+        SXSSFWorkbook workbook = new SXSSFWorkbook(1000);
+        SXSSFSheet sheet = workbook.createSheet("信息表");
 
         //设置要导出的文件的名字
         String fileName = UUID.randomUUID().toString() + ".xls";
@@ -74,17 +78,17 @@ public class BillCommonExportService {
         if ("BILL_DETAIL".equals(vo.getType())) {
             headers.addAll(Arrays.asList(new String[]{"货号", "货品名称", "单价", "吊牌价", "颜色编号", "颜色名称", "尺码", "数量"}));
         }
-        HSSFRow row = sheet.createRow(0);
+        SXSSFRow row = sheet.createRow(0);
         int i = 0;
         for (String header : headers) {
-            HSSFCell cell = row.createCell(i++);
+            SXSSFCell cell = row.createCell(i++);
             HSSFRichTextString text = new HSSFRichTextString(header);
             cell.setCellValue(text);
         }
         if ("BILL".equals(vo.getType())) {
             for (BillVo billVo : list.getContent()) {
                 int j = 0;
-                HSSFRow row1 = sheet.createRow(rowNum);
+                SXSSFRow row1 = sheet.createRow(rowNum);
                 row1.createCell(j++).setCellValue(billVo.getCode());
                 row1.createCell(j++).setCellValue(billVo.getBillDate().toString());
                 if (hasParent) {
@@ -106,7 +110,7 @@ public class BillCommonExportService {
                 List<BillGoodsPo> goodsList = baseBillGoodsDao.findByBillId(billVo.getId());
                 for (BillGoodsPo goodsPo : goodsList) {
                     int j = 0;
-                    HSSFRow row1 = sheet.createRow(rowNum);
+                    SXSSFRow row1 = sheet.createRow(rowNum);
                     row1.createCell(j++).setCellValue(billVo.getCode());
                     row1.createCell(j++).setCellValue(billVo.getBillDate().toString());
                     if (hasParent) {
@@ -137,7 +141,7 @@ public class BillCommonExportService {
                 List<BillDetailPo> detailList = baseBillDetailDao.findByBillId(billVo.getId());
                 for (BillDetailPo detailPo : detailList) {
                     int j = 0;
-                    HSSFRow row1 = sheet.createRow(rowNum);
+                    SXSSFRow row1 = sheet.createRow(rowNum);
                     row1.createCell(j++).setCellValue(billVo.getCode());
                     row1.createCell(j++).setCellValue(billVo.getBillDate().toString());
                     if (hasParent) {
@@ -200,7 +204,7 @@ public class BillCommonExportService {
      * @param row1
      * @param billVo
      */
-    private int addData(String key, int j, HSSFRow row1, BillVo billVo) {
+    private int addData(String key, int j, SXSSFRow row1, BillVo billVo) {
         if ("supplier".equals(key)) {
             row1.createCell(j++).setCellValue(billVo.getSupplierCode());
             row1.createCell(j++).setCellValue(billVo.getSupplierName());

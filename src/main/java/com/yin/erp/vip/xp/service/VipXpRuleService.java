@@ -40,7 +40,7 @@ public class VipXpRuleService {
         if (xpRileList != null && !xpRileList.isEmpty()) {
             for (VipXpRulePo vipXpRulePo : xpRileList) {
                 if (vipXpRulePo.getVipXpRuleGoodsPoList() == null || vipXpRulePo.getVipXpRuleGoodsPoList().isEmpty()) {
-                    return vipXpRulePo.getPriority();
+                    return vipXpRulePo.getXp();
                 } else {
                     if (vipXpRulePo.getVipXpRuleGoodsPoList().stream().filter(g -> (g.getGoodsId() == null || g.getGoodsId().equals(goodsId))
                             && (g.getGoodsBrandId() == null || g.getGoodsBrandId().equals(goodsBrandId))
@@ -48,7 +48,7 @@ public class VipXpRuleService {
                             && (g.getGoodsSeasonId() == null || g.getGoodsSeasonId().equals(goodsSeasonId))
                             && (g.getGoodsYearId() == null || g.getGoodsYearId().equals(goodsYearId))
                     ).count() > 0L) {
-                        return vipXpRulePo.getPriority();
+                        return vipXpRulePo.getXp();
                     }
                 }
             }
