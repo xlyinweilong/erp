@@ -41,7 +41,7 @@ public class EmployController {
      */
     @GetMapping(value = "list")
     public BaseJson list(EmployVo vo) {
-        return BaseJson.getSuccess(employService.findDictPage(vo));
+        return BaseJson.getSuccess(employService.findEmplooPage(vo));
     }
 
     /**

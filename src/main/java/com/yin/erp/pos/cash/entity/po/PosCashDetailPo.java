@@ -118,24 +118,6 @@ public class PosCashDetailPo extends BasePo {
     private Integer billCount = 0;
 
     /**
-     * 营业员ID
-     */
-    @Column(name = "employ_id")
-    private String employId;
-
-    /**
-     * 营业员编号
-     */
-    @Column(name = "employ_code")
-    private String employCode;
-
-    /**
-     * 营业员名称
-     */
-    @Column(name = "employ_name")
-    private String employName;
-
-    /**
      * 获得的积分
      */
     @Column(name = "integral")

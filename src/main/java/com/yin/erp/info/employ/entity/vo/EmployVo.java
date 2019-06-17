@@ -4,6 +4,8 @@ import com.yin.common.entity.vo.in.BasePageVo;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 /**
  * 营业员VO
  *
@@ -20,5 +22,9 @@ public class EmployVo extends BasePageVo {
     private String name;
 
     private String searchKey;
+
+    private String channelId;
+
+    private BigDecimal rate;
 
 }

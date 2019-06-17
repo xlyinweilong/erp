@@ -5,7 +5,7 @@ import com.yin.common.exceptions.MessageException;
 import com.yin.erp.info.employ.dao.EmployDao;
 import com.yin.erp.info.employ.entity.po.EmployPo;
 import com.yin.erp.info.employ.entity.vo.EmployVo;
-import com.yin.erp.pos.cash.dao.PosCashDetailDao;
+import com.yin.erp.pos.cash.dao.PosCashEmployDao;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -31,7 +31,7 @@ public class EmployService {
     @Autowired
     private EmployDao employDao;
     @Autowired
-    private PosCashDetailDao posCashDetailDao;
+    private PosCashEmployDao posCashEmployDao;
 
     /**
      * 保存
@@ -71,7 +71,7 @@ public class EmployService {
      * @param vo
      * @return
      */
-    public Page<EmployPo> findDictPage(EmployVo vo) {
+    public Page<EmployPo> findEmplooPage(EmployVo vo) {
         Page<EmployPo> page = employDao.findAll((root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (StringUtils.isNoneBlank(vo.getCode())) {
@@ -80,6 +80,10 @@ public class EmployService {
             if (StringUtils.isNoneBlank(vo.getName())) {
                 predicates.add(criteriaBuilder.like(root.get("name"), "%" + vo.getName() + "%"));
             }
+            //员工属于渠道 TODO
+//            if (StringUtils.isNoneBlank(vo.getChannelId())) {
+//                predicates.add(criteriaBuilder.like(root.get("channelId"), "%" + vo.getChannelId() + "%"));
+//            }
             if (StringUtils.isNoneBlank(vo.getSearchKey())) {
                 List<Predicate> predicatesSearch = new ArrayList<>();
                 predicatesSearch.add(criteriaBuilder.like(root.get("name"), "%" + vo.getSearchKey() + "%"));
@@ -99,7 +103,7 @@ public class EmployService {
     public void delete(BaseDeleteVo vo) throws MessageException{
         for (String id : vo.getIds()) {
             //POS
-            if (posCashDetailDao.countByEmployId(id) > 0L) {
+            if (posCashEmployDao.countByEmployId(id) > 0L) {
                 throw new MessageException("数据已经被引用，无法删除");
             }
             employDao.deleteById(id);

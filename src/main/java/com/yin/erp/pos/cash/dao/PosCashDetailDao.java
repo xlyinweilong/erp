@@ -40,5 +40,4 @@ public interface PosCashDetailDao extends JpaRepository<PosCashDetailPo, String>
     Long countByGoodsId(String goodsId);
 
 
-    Long countByEmployId(String employId);
 }

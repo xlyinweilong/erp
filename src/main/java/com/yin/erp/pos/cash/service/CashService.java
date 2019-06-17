@@ -6,16 +6,11 @@ import com.yin.common.utils.GenerateUtil;
 import com.yin.erp.bill.common.enums.BillStatusEnum;
 import com.yin.erp.info.channel.dao.ChannelDao;
 import com.yin.erp.info.channel.entity.po.ChannelPo;
+import com.yin.erp.info.employ.entity.vo.EmployVo;
 import com.yin.erp.info.marketpoint.dao.MarketPointDao;
 import com.yin.erp.info.marketpoint.entity.po.MarketPointPo;
-import com.yin.erp.pos.cash.dao.PosCashCouponDao;
-import com.yin.erp.pos.cash.dao.PosCashDao;
-import com.yin.erp.pos.cash.dao.PosCashDetailDao;
-import com.yin.erp.pos.cash.dao.PosCashPaymentDao;
-import com.yin.erp.pos.cash.entity.po.PosCashCouponPo;
-import com.yin.erp.pos.cash.entity.po.PosCashDetailPo;
-import com.yin.erp.pos.cash.entity.po.PosCashPaymentPo;
-import com.yin.erp.pos.cash.entity.po.PosCashPo;
+import com.yin.erp.pos.cash.dao.*;
+import com.yin.erp.pos.cash.entity.po.*;
 import com.yin.erp.pos.cash.entity.vo.in.PayVo;
 import com.yin.erp.pos.cash.entity.vo.in.PosCashGoods;
 import com.yin.erp.pos.cash.entity.vo.in.PosCashPayment;
@@ -69,6 +64,8 @@ public class CashService {
     private VipCouponDao vipCouponDao;
     @Autowired
     private PosCashCouponDao posCashCouponDao;
+    @Autowired
+    private PosCashEmployDao posCashEmployDao;
 
 
     /**
@@ -137,6 +134,18 @@ public class CashService {
                 posCashCouponDao.save(posCashCouponPo);
             }
         }
+
+        for (EmployVo employVo : payVo.getEmployList()) {
+            PosCashEmployPo posCashEmployPo = new PosCashEmployPo();
+            posCashEmployPo.setBillDate(now);
+            posCashEmployPo.setChannelId(payVo.getChannelId());
+            posCashEmployPo.setEmployCode(employVo.getCode());
+            posCashEmployPo.setEmployId(employVo.getId());
+            posCashEmployPo.setEmployName(employVo.getName());
+            posCashEmployPo.setRate(employVo.getRate());
+            posCashEmployDao.save(posCashEmployPo);
+        }
+
         for (PosCashGoods goodsVo : payVo.getGoodsList()) {
             PosCashDetailPo detailPo = new PosCashDetailPo();
             detailPo.setStatus(BillStatusEnum.AUDITED.name());
@@ -160,9 +169,9 @@ public class CashService {
             detailPo.setGoodsId(goodsVo.getId());
             detailPo.setGoodsName(goodsVo.getName());
             detailPo.setGoodsCode(goodsVo.getCode());
-            detailPo.setEmployCode(StringUtils.trimToNull(goodsVo.getEmployCode()));
-            detailPo.setEmployId(StringUtils.trimToNull(goodsVo.getEmployId()));
-            detailPo.setEmployName(StringUtils.trimToNull(goodsVo.getEmployCode()));
+//            detailPo.setEmployCode(StringUtils.trimToNull(goodsVo.getEmployCode()));
+//            detailPo.setEmployId(StringUtils.trimToNull(goodsVo.getEmployId()));
+//            detailPo.setEmployName(StringUtils.trimToNull(goodsVo.getEmployCode()));
             if (po.getVipId() != null) {
                 //获取积分
                 Integer integralRule = vipIntegralRuleService.calculateIntegral(payVo.getVipGradeId(), now, detailPo.getGoodsId(), goodsVo.getGoodsBrandId(), goodsVo.getGoodsCategoryId(), goodsVo.getGoodsSeasonId(), goodsVo.getGoodsYearId());
